@@ -1,0 +1,203 @@
+/* General Styles */
+body {
+    font-family: 'Heebo', sans-serif;
+    background-color: #f9f9f9;
+    color: #333;
+    margin: 0;
+    padding: 0;
+    letter-spacing: 0.525px;
+}
+
+/* Header Styling */
+header {
+    background-color: #fff;
+    padding: 10px 0;
+}
+
+.header-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    text-align: center;
+}
+
+.logo {
+    max-width: 200px;
+    height: auto;
+}
+
+/* Sticky Navbar */
+.sticky-navbar {
+    position: -webkit-sticky;
+    position: sticky;
+    top: 0;
+    background-color: #3A237F;
+    z-index: 1000;
+    padding: 0;
+    width: 100%; /* Ensure full width */
+}
+
+/* Flexbox Navbar for topics */
+.topic-navbar {
+    display: flex;
+    flex-wrap: wrap; /* Allows items to wrap onto the next line if needed */
+    justify-content: left;
+    gap: 0;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+/* Topic items */
+.topic-item {
+    background-color: transparent;
+    color: white;
+    font-family: 'Heebo', sans-serif;
+    font-size: 0.8rem;
+    cursor: pointer;
+    padding: 16px 14px;
+    transition: background-color 0.3s ease;
+    letter-spacing: 1.15px;
+    border: 0;
+    margin: 0;
+}
+
+/* Hover effect for topic items */
+.topic-item:hover {
+    background-color: #291573;
+}
+
+/* Selected topic styling - White background with #3A237F font color */
+.selected-topic {
+    background-color: white;
+    color: #3A237F;
+}
+
+/* Ensure the hover state doesn't interfere with the selected topic */
+.selected-topic:hover {
+    background-color: white;
+    color: #3A237F;
+}
+
+/* Main content */
+main {
+    margin-top: 20px;
+    max-width: 1200px;
+    margin: 20px auto;
+    padding: 0 20px;
+}
+
+/* Article grid layout */
+.article-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); /* Responsive layout */
+    grid-gap: 20px;
+}
+
+/* Article card */
+.article {
+    background-color: white;
+    text-align: left;
+    border-radius: 0; /* Keep square corners */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+    overflow: hidden; /* Ensure image fills the article card */
+    line-height: 1.25rem;
+}
+
+/* Ensure the image takes up the full width and has a 2:3 aspect ratio */
+.article-image {
+    position: relative;
+    width: 100%; /* Full width of the article */
+    padding-bottom: 66.67%; /* This ensures a 2:3 aspect ratio (2 height, 3 width) */
+    overflow: hidden; /* Ensure the content stays within the container */
+}
+
+.article-image img {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%; /* Make sure the image fills the container */
+    height: 100%; /* Enforce the 2:3 height ratio */
+    object-fit: cover; /* Ensures the image covers the container, cropping if necessary */
+    border-radius: 0; /* Square corners */
+}
+
+/* Article title styling */
+.article-title {
+    font-family: 'Georgia', serif;
+    font-size: 1.15rem;
+    font-weight: 700;
+    margin: 15px 20px 10px 20px; /* Add margin to keep content away from edges */
+    color: #333;
+    line-height: 1.675rem;
+}
+
+/* Buttons for each article */
+.article-buttons {
+    margin: 10px 20px;
+}
+
+.article-buttons button {
+    background-color: #3A237F;
+    color: white;
+    padding: 10px 20px;
+    margin-right: 10px;
+    border: none;
+    cursor: pointer;
+    font-family: 'Heebo', sans-serif;
+    font-size: 14px;
+}
+
+.article-buttons button:hover {
+    background-color: #291573; /* Darken button color on hover */
+}
+
+/* Summary text (initially hidden) */
+.article-summary {
+    font-family: 'Georgia', serif;
+    font-size: 0.9rem;
+    color: #666;
+    margin: 15px 20px;
+    display: none; /* Initially hidden */
+}
+
+/* Article date styling */
+.article-date {
+    font-style: italic;
+    color: #999;
+    margin: 15px 20px;
+}
+
+/* Pagination buttons */
+.pagination-btn {
+    background-color: #3A237F;
+    color: white;
+    padding: 10px 15px;
+    border: none;
+    cursor: pointer;
+    font-family: 'Heebo', sans-serif;
+    font-size: 14px;
+}
+
+.pagination-btn:hover {
+    background-color: #291573;
+}
+
+/* Page numbers */
+#page-numbers {
+    margin: 0 10px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .article-title {
+        font-size: 1.5rem;
+    }
+
+    .article-summary {
+        font-size: 0.875rem;
+    }
+
+    .filter-bar {
+        flex-direction: column;
+    }
+}
