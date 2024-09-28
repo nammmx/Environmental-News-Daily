@@ -30,7 +30,7 @@ header {
     position: -webkit-sticky;
     position: sticky;
     top: 0;
-    background-color: #3A237F;
+    background-color: #333;
     z-index: 1000;
     padding: 0;
     width: 100%; /* Ensure full width */
@@ -56,26 +56,29 @@ header {
     cursor: pointer;
     padding: 16px 14px;
     transition: background-color 0.3s ease;
-    letter-spacing: 1.15px;
+    letter-spacing: 1.1px;
     border: 0;
     margin: 0;
 }
 
 /* Hover effect for topic items */
 .topic-item:hover {
-    background-color: #291573;
+    background-color: white;
+    color: #333;
+    font-weight: bold;
 }
 
 /* Selected topic styling - White background with #3A237F font color */
 .selected-topic {
     background-color: white;
-    color: #3A237F;
+    color: #333;
+    font-weight: bold;
 }
 
 /* Ensure the hover state doesn't interfere with the selected topic */
 .selected-topic:hover {
     background-color: white;
-    color: #3A237F;
+    color: #333;
 }
 
 /* Main content */
@@ -137,8 +140,8 @@ main {
 }
 
 .article-buttons button {
-    background-color: #3A237F;
-    color: white;
+    background-color: #f9f9f9;
+    color: #333;
     padding: 10px 20px;
     margin-right: 10px;
     border: none;
@@ -162,9 +165,9 @@ main {
 
 /* Article date styling */
 .article-date {
-    font-style: italic;
-    color: #999;
+    color: #3A237F;
     margin: 15px 20px;
+    font-size: 0.75rem;
 }
 
 /* Pagination buttons */
