@@ -8,6 +8,7 @@ app = Flask(__name__)
 
 # Database connection setup
 db_url = f"postgresql://{config.DB_USER}:{config.DB_PASSWORD}@{config.DB_HOST}:{config.DB_PORT}/{config.DB_DATABASE}"
+# db_url = f"redshift+psycopg2://{config.REDSHIFT_USER}:{config.REDSHIFT_PASSWORD}@{config.REDSHIFT_HOST}:{config.REDSHIFT_PORT}/{config.REDSHIFT_DBNAME}"
 engine = create_engine(db_url)
 
 # Load the entire dataset into memory
@@ -16,7 +17,7 @@ data_in_memory = None
 def load_data():
     global data_in_memory
     query = """
-        SELECT news_id, date_created, title, topic, summary, link, image, topic_2
+        SELECT news_id, date_created, title, topic, summary, link, image, topic_2, source
         FROM news
         WHERE article != '' AND image != ''
     """

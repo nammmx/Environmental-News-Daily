@@ -13,6 +13,18 @@ document.addEventListener('DOMContentLoaded', function() {
     const topicNavbar = document.querySelector('.topic-navbar');
     const topicItems = document.querySelectorAll('.topic-item');
 
+    // Source image mapping
+    const sourceImageMapping = {
+        "BBC News": "bbc.png",
+        "Columbia Climate School": "columbia.png",
+        "Earth911": "earth911.png",
+        "Greenpeace": "greenpeace.png",
+        "Grist": "grist.png",
+        "Guardian": "guardian.png",
+        "The Independent": "independent.png",
+        "Yale Environment360": "yale.png"
+    };
+
     // Detect if flexbox wrapping occurs
     function checkFlexWrap() {
         const initialHeight = topicNavbar.clientHeight;
@@ -68,37 +80,42 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Create an article element with image, title, and date
-    function createArticleElement(article) {
-        const articleDiv = document.createElement('div');
-        articleDiv.className = 'article';
-        articleDiv.innerHTML = `
-            <div class="article-content">
-                <div class="article-image">
-                    <img src="${article.image}" alt="${article.title}">
-                </div>
-                <h2 class="article-title">${article.title}</h2>
-                <p class="article-date">${formatDate(article.date_created)}</p>
+// Create an article element with image, title, date, and source image
+function createArticleElement(article) {
+    const articleDiv = document.createElement('div');
+    articleDiv.className = 'article';
+
+    const sourceImage = sourceImageMapping[article.source];
+    // Add debugging logs to check the source and image mapping
+    console.log('Source Image:', sourceImage);
+    console.log('Article Source:', article.source);
+    articleDiv.innerHTML = `
+        <div class="article-content">
+            <div class="article-image">
+                <img src="${article.image}" alt="${article.title}">
             </div>
-            <div class="article-summary">
-                <button class="close-summary">&times;</button> <!-- X button to close summary -->
-                <h3 class="summary-caption">Summary</h3>
-                <div class="summary-text">${article.summary}</div>
-                <div class="summary-buttons">
-                    <button class="btn-read-whole" onclick="window.open('${article.link}', '_blank')">Read Whole Article</button>
-                </div>
+            <h2 class="article-title">${article.title}</h2>
+            <p class="article-date">${formatDate(article.date_created)}</p>
+            <img src="/static/images/${sourceImage}" alt="${article.source}" class="article-source-image">
+        </div>
+        <div class="article-summary">
+            <button class="close-summary">&times;</button> <!-- X button to close summary -->
+            <h3 class="summary-caption">Summary</h3>
+            <div class="summary-text">${article.summary}</div>
+            <div class="summary-buttons">
+                <button class="btn-read-whole" onclick="window.open('${article.link}', '_blank')">Read Whole Article</button>
             </div>
-        `;
+        </div>
+    `;
 
-        // Make the entire article clickable
-        articleDiv.addEventListener('click', toggleSummary);
+    // Make the entire article clickable
+    articleDiv.addEventListener('click', toggleSummary);
 
-        // Add event listener to the close button
-        const closeButton = articleDiv.querySelector('.close-summary');
-        closeButton.addEventListener('click', toggleSummary);
-
-        return articleDiv;
-    }
+    // Add event listener to the close button
+    const closeButton = articleDiv.querySelector('.close-summary');
+    closeButton.addEventListener('click', toggleSummary);
+    return articleDiv;
+}
 
     // Toggle summary visibility
     function toggleSummary(event) {
