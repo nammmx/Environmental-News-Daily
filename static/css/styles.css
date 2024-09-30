@@ -93,25 +93,33 @@ main {
 .article-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); /* Responsive layout */
-    grid-gap: 20px;
+    grid-gap: 50px 20px;
 }
 
 /* Article card */
 .article {
     background-color: white;
     text-align: left;
-    border-radius: 0; /* Keep square corners */
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Subtle shadow */
-    overflow: hidden; /* Ensure image fills the article card */
+    border-radius: 0;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
     line-height: 1.25rem;
+    transition: all 0.3s ease;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;  /* Ensure everything is aligned to the top */
+    height: 100%;  /* Ensure the card takes up full height */
+    cursor: pointer;
 }
 
 /* Ensure the image takes up the full width and has a 2:3 aspect ratio */
 .article-image {
     position: relative;
     width: 100%; /* Full width of the article */
-    padding-bottom: 66.67%; /* This ensures a 2:3 aspect ratio (2 height, 3 width) */
-    overflow: hidden; /* Ensure the content stays within the container */
+    padding-bottom: 66.67%; /* Enforce 2:3 aspect ratio */
+    overflow: hidden;
+    margin-bottom: 0; /* Remove any margin below the image */
 }
 
 .article-image img {
@@ -120,8 +128,8 @@ main {
     left: 0;
     width: 100%; /* Make sure the image fills the container */
     height: 100%; /* Enforce the 2:3 height ratio */
-    object-fit: cover; /* Ensures the image covers the container, cropping if necessary */
-    border-radius: 0; /* Square corners */
+    object-fit: cover;
+    border-radius: 0;
 }
 
 /* Article title styling */
@@ -129,45 +137,116 @@ main {
     font-family: 'Georgia', serif;
     font-size: 1.15rem;
     font-weight: 700;
-    margin: 15px 20px 10px 20px; /* Add margin to keep content away from edges */
+    margin: 22px 20px 75px 20px; /* Ensure no margin at the bottom */
+    padding: 0;
     color: #333;
     line-height: 1.675rem;
+    flex-grow: 0; /* Ensure the title takes up only its necessary space */
+    position: relative;
+    top: 0;
+    flex-shrink: 0; /* Prevent the title from shrinking */
 }
 
-/* Buttons for each article */
-.article-buttons {
-    margin: 10px 20px;
+/* Article content */
+.article-content {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start; /* Align everything to the top */
+    flex-grow: 1;  /* Allow the content to grow */
+    padding-bottom: 30px;  /* Ensure space for the date */
+    position: relative;
 }
 
-.article-buttons button {
-    background-color: #f9f9f9;
-    color: #333;
-    padding: 10px 20px;
-    margin-right: 10px;
-    border: none;
-    cursor: pointer;
-    font-family: 'Heebo', sans-serif;
-    font-size: 14px;
-}
-
-.article-buttons button:hover {
-    background-color: #291573; /* Darken button color on hover */
+/* Article date styling */
+.article-date {
+    color: #ef3b2b;
+    margin: 0px 20px 15px 20px;
+    font-size: 0.8rem;
+    font-weight: bold;
+    position: absolute;
+    bottom: 0; /* Push the date to the bottom */
+    left: 0;   /* Align the date to the left */
 }
 
 /* Summary text (initially hidden) */
 .article-summary {
     font-family: 'Georgia', serif;
-    font-size: 0.9rem;
-    color: #666;
-    margin: 15px 20px;
-    display: none; /* Initially hidden */
+    font-size: 0.75rem;
+    color: #333;
+    margin: 0;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    padding: 20px;
+    overflow-y: auto;
+    pointer-events: none;
+    background-color: #f0f0f0;
 }
 
-/* Article date styling */
-.article-date {
-    color: #3A237F;
-    margin: 15px 20px;
-    font-size: 0.75rem;
+.article.summary-active {
+    background-color: #f0f0f0;
+}
+
+.article.summary-active .article-summary {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.article.summary-active .article-content {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.article.summary-active h3 {
+    font-size: 1.1rem;
+}
+
+/* X button styling */
+.close-summary {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    font-size: 20px;
+    color: #333;
+    cursor: pointer;
+    background: none;
+    border: none;
+    font-weight: bold;
+}
+
+/* Centered 'Read Whole Article' button */
+.summary-buttons {
+    display: flex;
+    justify-content: center; /* Center the button horizontally */
+    gap: 10px;
+    margin-top: auto;
+}
+
+.summary-buttons button {
+    background-color: #ef3b2b;
+    color: white;
+    padding: 10px 14px;
+    border: none;
+    cursor: pointer;
+    font-family: 'Heebo', sans-serif;
+    font-size: 14px;
+    transition: background-color 0.3s ease;
+    font-size: 0.8rem;
+    margin: 30px 0 0px 0;
+    letter-spacing: 0.5px;
+}
+
+.summary-buttons button:hover {
+    background-color: #291573;
+    color: white;
 }
 
 /* Pagination buttons */

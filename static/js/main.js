@@ -68,43 +68,48 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Create an article element with image, title, buttons, and date
+    // Create an article element with image, title, and date
     function createArticleElement(article) {
         const articleDiv = document.createElement('div');
         articleDiv.className = 'article';
-
         articleDiv.innerHTML = `
-            <div class="article-image">
-                <img src="${article.image}" alt="${article.title}">
+            <div class="article-content">
+                <div class="article-image">
+                    <img src="${article.image}" alt="${article.title}">
+                </div>
+                <h2 class="article-title">${article.title}</h2>
+                <p class="article-date">${formatDate(article.date_created)}</p>
             </div>
-            <h2 class="article-title">${article.title}</h2>
-            <div class="article-buttons">
-                <button class="btn-summary" data-id="${article.news_id}">Read Summary</button>
-                <button class="btn-article" onclick="window.open('${article.link}', '_blank')">Read Whole Article</button>
+            <div class="article-summary">
+                <button class="close-summary">&times;</button> <!-- X button to close summary -->
+                <h3 class="summary-caption">Summary</h3>
+                <div class="summary-text">${article.summary}</div>
+                <div class="summary-buttons">
+                    <button class="btn-read-whole" onclick="window.open('${article.link}', '_blank')">Read Whole Article</button>
+                </div>
             </div>
-            <p class="article-summary" id="summary-${article.news_id}" style="display: none;">${article.summary}</p>
-            <p class="article-date">${formatDate(article.date_created)}</p>
         `;
+
+        // Make the entire article clickable
+        articleDiv.addEventListener('click', toggleSummary);
+
+        // Add event listener to the close button
+        const closeButton = articleDiv.querySelector('.close-summary');
+        closeButton.addEventListener('click', toggleSummary);
 
         return articleDiv;
     }
 
     // Toggle summary visibility
-    articlesContainer.addEventListener('click', function(e) {
-        if (e.target.classList.contains('btn-summary')) {
-            const articleId = e.target.getAttribute('data-id');
-            const summaryElement = document.getElementById(`summary-${articleId}`);
-            const isVisible = summaryElement.style.display === 'block';
-
-            if (isVisible) {
-                summaryElement.style.display = 'none';
-                e.target.textContent = 'Read Summary';
-            } else {
-                summaryElement.style.display = 'block';
-                e.target.textContent = 'Hide Summary';
-            }
+    function toggleSummary(event) {
+        const articleElement = event.target.closest('.article');
+        if (articleElement.classList.contains('summary-active')) {
+            articleElement.classList.remove('summary-active');
+        } else {
+            articleElement.classList.add('summary-active');
         }
-    });
+        event.stopPropagation(); // Prevents the entire card from toggling when clicking on close
+    }
 
     // Pagination
     function updatePagination(current, total) {
