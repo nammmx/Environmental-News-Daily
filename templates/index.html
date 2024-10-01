@@ -26,13 +26,6 @@
     <main>
         <section class="article-list">
             <nav class="filter-bar">
-                <select id="date-select" class="filter-option">
-                    <option value="all">All Dates</option>
-                    {% for date in date_options %}
-                        <option value="{{ date }}">{{ date | format_date('%B %d, %Y') }}</option>
-                    {% endfor %}
-                </select>
-
                 <form id="search-form" class="search-form">
                     <input type="text" id="keyword-input" placeholder="Search..." class="search-box">
                 </form>
@@ -43,9 +36,9 @@
 
             <!-- Pagination -->
             <div id="pagination">
-                <button id="prev-page" class="pagination-btn">Previous</button>
+                <button id="prev-page" class="pagination-btn">Previous Page</button>
                 <span id="page-numbers"></span>
-                <button id="next-page" class="pagination-btn">Next</button>
+                <button id="next-page" class="pagination-btn">Next Page</button>
             </div>
         </section>
     </main>

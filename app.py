@@ -1,33 +1,40 @@
 from flask import Flask, render_template, request, jsonify
 import pandas as pd
 from sqlalchemy import create_engine, text
-from datetime import datetime, date
-import config
+from datetime import datetime
+from dotenv import load_dotenv
+import os
+from flask_caching import Cache
 
 app = Flask(__name__)
 
+# Configure caching
+# cache = Cache(config={'CACHE_TYPE': 'SimpleCache', 'CACHE_DEFAULT_TIMEOUT': 1800})  # Cache timeout in seconds (10 mins)
+# cache.init_app(app)
+
 # Database connection setup
-db_url = f"postgresql://{config.DB_USER}:{config.DB_PASSWORD}@{config.DB_HOST}:{config.DB_PORT}/{config.DB_DATABASE}"
-# db_url = f"redshift+psycopg2://{config.REDSHIFT_USER}:{config.REDSHIFT_PASSWORD}@{config.REDSHIFT_HOST}:{config.REDSHIFT_PORT}/{config.REDSHIFT_DBNAME}"
+load_dotenv()
+
+db_url = (
+    f"redshift+psycopg2://{os.getenv('REDSHIFT_USER')}:{os.getenv('REDSHIFT_PASSWORD')}"
+    f"@{os.getenv('REDSHIFT_HOST')}:{os.getenv('REDSHIFT_PORT')}/{os.getenv('REDSHIFT_DBNAME')}"
+)
 engine = create_engine(db_url)
 
-# Load the entire dataset into memory
-data_in_memory = None
-
+# Load the entire dataset into memory (cached)
+# @cache.cached(timeout=1800, key_prefix='data_in_memory')  # Cache this function for 10 minutes
 def load_data():
-    global data_in_memory
     query = """
-        SELECT news_id, date_created, title, topic, summary, link, image, topic_2, source
-        FROM news
-        WHERE article != '' AND image != ''
+        SELECT publish_date, title, topic1, summary, link, image, topic2, source
+        FROM ingestion.news_articles
+        WHERE content != '' AND image != ''
+        ORDER BY publish_date DESC
     """
     with engine.connect() as connection:
         result = connection.execute(text(query))
         data_in_memory = pd.DataFrame(result.fetchall(), columns=result.keys())
-        data_in_memory['date_created'] = pd.to_datetime(data_in_memory['date_created'])  # Ensure date column is datetime
-
-# Load data initially
-load_data()
+        data_in_memory['publish_date'] = pd.to_datetime(data_in_memory['publish_date'])  # Ensure date column is datetime
+    return data_in_memory
 
 # Custom filter for date formatting
 @app.template_filter('format_date')
@@ -38,38 +45,35 @@ def format_date(value, format='%B %d, %Y'):
 
 @app.route('/')
 def index():
-    # Date range setup
-    min_date = date(2024, 8, 25)  # Adjust as necessary
-    max_date = date.today()
-    date_list = pd.date_range(min_date, max_date, freq='d').tolist()
-    date_options = [d.strftime("%Y-%m-%d") for d in reversed(date_list)]
-    
     # Topics for filtering
-    topics = ["Business & Innovation", "Climate Change", "Crisis", "Energy", "Fossil Fuel",
-              "Lifestyle", "Politics & Law", "Pollution", "Society", "Water", "Wildlife & Conservation"]
+    topics = [
+        "Agriculture & Food", "Business & Innovation", "Climate Change", 
+        "Crisis & Disasters", "Energy", "Fossil Fuels", "Pollution", 
+        "Politics & Law", "Public Health & Environment", "Society & Culture", 
+        "Sustainability", "Technology & Science", "Urban & Infrastructure", 
+        "Water & Oceans", "Wildlife & Conservation"
+    ]
     
-    return render_template('index.html', date_options=date_options, topics=topics)
+    return render_template('index.html', topics=topics)
 
 @app.route('/get_articles')
 def get_articles():
-    global data_in_memory
-    selected_date = request.args.get('date')
+    data_in_memory = load_data()  # Use cached data
     selected_topic = request.args.get('topic')
     keyword = request.args.get('keyword', '')
     page = int(request.args.get('page', 1))
-    articles_per_page = 20
+    articles_per_page = 21
 
     # Filter the data in memory
     filtered_data = data_in_memory.copy()
     
-    # Filter by date if not "all"
-    if selected_date and selected_date != 'all':
-        filtered_data = filtered_data[filtered_data['date_created'].dt.date == pd.to_datetime(selected_date).date()]
-    
     # Filter by topic if not "all"
     if selected_topic and selected_topic != 'all':
-        filtered_data = filtered_data[(filtered_data['topic'] == selected_topic) | 
-                                      (filtered_data['topic_2'] == selected_topic)]
+        # Ensure case-insensitive matching for topics
+        filtered_data = filtered_data[
+            (filtered_data['topic1'].str.lower() == selected_topic.lower()) | 
+            (filtered_data['topic2'].str.lower() == selected_topic.lower())
+        ]
 
     # Filter by keyword if provided
     if keyword:
@@ -99,8 +103,9 @@ def get_articles():
 # Route to refresh the in-memory dataset
 @app.route('/refresh_data')
 def refresh_data():
-    load_data()
+    # cache.delete('data_in_memory')  # Clear the cached data
+    load_data()  # Reload the data and cache it
     return "Data refreshed", 200
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(host='0.0.0.0', port=5000)

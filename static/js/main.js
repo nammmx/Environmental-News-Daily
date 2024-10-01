@@ -1,14 +1,13 @@
 document.addEventListener('DOMContentLoaded', function() {
     let currentPage = 1;
-    const articlesPerPage = 20;
+    const articlesPerPage = 21;
 
     // DOM elements
-    const dateSelect = document.getElementById('date-select');
     const keywordInput = document.getElementById('keyword-input');
     const articlesContainer = document.getElementById('articles-container');
     const prevPageBtn = document.getElementById('prev-page');
     const nextPageBtn = document.getElementById('next-page');
-    const pageNumbersContainer = document.getElementById('page-numbers');
+    const pageNumbersContainer = document.getElementById('page-numbers'); // Define pageNumbersContainer
     let selectedTopic = 'all';
     const topicNavbar = document.querySelector('.topic-navbar');
     const topicItems = document.querySelectorAll('.topic-item');
@@ -20,10 +19,16 @@ document.addEventListener('DOMContentLoaded', function() {
         "Earth911": "earth911.png",
         "Greenpeace": "greenpeace.png",
         "Grist": "grist.png",
-        "Guardian": "guardian.png",
+        "The Guardian": "guardian.png",
         "The Independent": "independent.png",
-        "Yale Environment360": "yale.png"
+        "Yale Environment 360": "yale.png"
     };
+
+    // Helper function to format dates
+    function formatDate(dateString) {
+        const options = { year: 'numeric', month: 'long', day: 'numeric' };
+        return new Date(dateString).toLocaleDateString(undefined, options);
+    }
 
     // Detect if flexbox wrapping occurs
     function checkFlexWrap() {
@@ -47,11 +52,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Fetch and display articles
     function fetchArticles(page = 1) {
-        const date = dateSelect.value;
         const keyword = keywordInput.value;
 
         const params = new URLSearchParams({
-            date: date,
             topic: selectedTopic,
             keyword: keyword,
             page: page
@@ -80,42 +83,39 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-// Create an article element with image, title, date, and source image
-function createArticleElement(article) {
-    const articleDiv = document.createElement('div');
-    articleDiv.className = 'article';
+    // Create an article element with image, date, title, and source image
+    function createArticleElement(article) {
+        const articleDiv = document.createElement('div');
+        articleDiv.className = 'article';
 
-    const sourceImage = sourceImageMapping[article.source];
-    // Add debugging logs to check the source and image mapping
-    console.log('Source Image:', sourceImage);
-    console.log('Article Source:', article.source);
-    articleDiv.innerHTML = `
-        <div class="article-content">
-            <div class="article-image">
-                <img src="${article.image}" alt="${article.title}">
+        const sourceImage = sourceImageMapping[article.source];
+        articleDiv.innerHTML = `
+            <div class="article-content">
+                <div class="article-image">
+                    <img src="${article.image}" alt="${article.title}">
+                </div>
+                <p class="article-date">${formatDate(article.publish_date)}</p> <!-- Date directly below image -->
+                <h2 class="article-title">${article.title}</h2>
+                <img src="/static/images/${sourceImage}" alt="${article.source}" class="article-source-image">
             </div>
-            <h2 class="article-title">${article.title}</h2>
-            <p class="article-date">${formatDate(article.date_created)}</p>
-            <img src="/static/images/${sourceImage}" alt="${article.source}" class="article-source-image">
-        </div>
-        <div class="article-summary">
-            <button class="close-summary">&times;</button> <!-- X button to close summary -->
-            <h3 class="summary-caption">Summary</h3>
-            <div class="summary-text">${article.summary}</div>
-            <div class="summary-buttons">
-                <button class="btn-read-whole" onclick="window.open('${article.link}', '_blank')">Read Whole Article</button>
+            <div class="article-summary">
+                <button class="close-summary">&times;</button> <!-- X button to close summary -->
+                <h3 class="summary-caption">Summary</h3>
+                <div class="summary-text">${article.summary}</div>
+                <div class="summary-buttons">
+                    <button class="btn-read-whole" onclick="window.open('${article.link}', '_blank')">Read Whole Article</button>
+                </div>
             </div>
-        </div>
-    `;
+        `;
 
-    // Make the entire article clickable
-    articleDiv.addEventListener('click', toggleSummary);
+        // Make the entire article clickable
+        articleDiv.addEventListener('click', toggleSummary);
 
-    // Add event listener to the close button
-    const closeButton = articleDiv.querySelector('.close-summary');
-    closeButton.addEventListener('click', toggleSummary);
-    return articleDiv;
-}
+        // Add event listener to the close button
+        const closeButton = articleDiv.querySelector('.close-summary');
+        closeButton.addEventListener('click', toggleSummary);
+        return articleDiv;
+    }
 
     // Toggle summary visibility
     function toggleSummary(event) {
@@ -140,13 +140,7 @@ function createArticleElement(article) {
             if (current < total) fetchArticles(++current);
         };
 
-        pageNumbersContainer.innerHTML = `Page ${current} of ${total}`;
-    }
-
-    // Helper function to format dates
-    function formatDate(dateString) {
-        const options = { year: 'numeric', month: 'long', day: 'numeric' };
-        return new Date(dateString).toLocaleDateString(undefined, options);
+        pageNumbersContainer.innerHTML = `${current} of ${total}`;
     }
 
     // Event listeners for navbar topics
@@ -165,8 +159,7 @@ function createArticleElement(article) {
         });
     });
 
-    // Event listeners for date and keyword
-    dateSelect.addEventListener('change', () => fetchArticles(1));
+    // Event listeners for keyword
     keywordInput.addEventListener('input', () => fetchArticles(1));
 
     // Initial fetch

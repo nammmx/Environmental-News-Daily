@@ -65,14 +65,12 @@ header {
 .topic-item:hover {
     background-color: white;
     color: #333;
-    font-weight: bold;
 }
 
 /* Selected topic styling - White background with #3A237F font color */
 .selected-topic {
     background-color: white;
     color: #333;
-    font-weight: bold;
 }
 
 /* Ensure the hover state doesn't interfere with the selected topic */
@@ -86,7 +84,7 @@ main {
     margin-top: 20px;
     max-width: 1200px;
     margin: 20px auto;
-    padding: 0 20px;
+    padding: 0 50px;
 }
 
 /* Article grid layout */
@@ -101,7 +99,6 @@ main {
     background-color: white;
     text-align: left;
     border-radius: 0;
-    /* box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15); */
     overflow: hidden;
     line-height: 1.25rem;
     transition: all 0.3s ease;
@@ -146,7 +143,7 @@ main {
     font-family: 'Georgia', serif;
     font-size: 1.15rem;
     font-weight: 700;
-    margin: 22px 20px 75px 20px; /* Ensure no margin at the bottom */
+    margin: 0px 20px 50px 20px; /* Ensure no margin at the bottom */
     padding: 0;
     color: #333;
     line-height: 1.675rem;
@@ -169,18 +166,16 @@ main {
 /* Article date styling */
 .article-date {
     color: #ef3b2b;
-    margin: 0px 20px 15px 20px;
+    margin: 10px 20px 5px 20px; /* Set margin to separate from the title */
     font-size: 0.8rem;
     font-weight: bold;
-    position: absolute;
-    bottom: 0; /* Push the date to the bottom */
-    left: 0;   /* Align the date to the left */
+    position: relative;
 }
 
 /* Summary text (initially hidden) */
 .article-summary {
     font-family: 'Georgia', serif;
-    font-size: 0.75rem;
+    font-size: 0.825rem;
     color: #333;
     margin: 0;
     position: absolute;
@@ -258,24 +253,39 @@ main {
     color: white;
 }
 
-/* Pagination buttons */
+/* Pagination*/
+#pagination {
+    margin: 100px 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
 .pagination-btn {
-    background-color: #3A237F;
-    color: white;
-    padding: 10px 15px;
+    color: #ef3b2b;
     border: none;
     cursor: pointer;
     font-family: 'Heebo', sans-serif;
-    font-size: 14px;
-}
-
-.pagination-btn:hover {
-    background-color: #291573;
+    font-size: 1.1rem;
+    background-color: #E5E4E4;
+    text-decoration: underline;
+    flex: 1;
+    letter-spacing: 0.55px;
 }
 
 /* Page numbers */
 #page-numbers {
-    margin: 0 10px;
+    font-size: 0.8rem;
+    flex: 0.5;
+    text-align: center;
+}
+
+#prev-page {
+    text-align: left;
+}
+
+#next-page {
+    text-align: right;
 }
 
 /* Responsive adjustments */
@@ -291,4 +301,18 @@ main {
     .filter-bar {
         flex-direction: column;
     }
+
+    #pagination {
+        margin: 40px 0 75px 0;
+    }
+
+    .pagination-btn {
+        color: #ef3b2b;
+        font-size: 0.9rem;
+    }
+
+    #page-numbers {
+        font-size: 0.75rem;
+    }
+
 }
