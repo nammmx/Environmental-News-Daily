@@ -1,6 +1,7 @@
 document.addEventListener('DOMContentLoaded', function() {
     let currentPage = 1;
     const articlesPerPage = 21;
+    let searchBarOpen = false; // Track the state of the search bar
 
     // DOM elements
     const keywordInput = document.getElementById('keyword-input');
@@ -13,7 +14,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const pageNumbersContainer = document.getElementById('page-numbers');
     let selectedTopic = 'all'; // Initialize with default topic
     const topicItems = document.querySelectorAll('.side-menu .topic-item');
-    let searchBarOpen = false;
 
     // Source image mapping
     const sourceImageMapping = {
@@ -35,18 +35,20 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Toggle search bar visibility
     searchIcon.addEventListener('click', function() {
-        searchIcon.classList.add('hidden');
-        searchBox.classList.remove('hidden');
-        searchBox.focus();
-        clearIcon.classList.remove('hidden');
-        searchBarOpen = true;
+        if (!searchBarOpen) {
+            searchBox.classList.add('visible');
+            searchIcon.classList.add('hidden');
+            clearIcon.classList.remove('hidden');
+            searchBarOpen = true;
+            keywordInput.focus(); // Focus on input when opened
+        }
     });
 
     // Clear search and reset to magnifying glass
     clearIcon.addEventListener('click', function() {
         keywordInput.value = ''; // Clear input
+        searchBox.classList.remove('visible');
         clearIcon.classList.add('hidden');
-        searchBox.classList.add('hidden');
         searchIcon.classList.remove('hidden');
         searchBarOpen = false;
         fetchArticles(); // Reset article list with no keyword
@@ -57,7 +59,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (event.key === 'Enter') {
             event.preventDefault();
             fetchArticles(); // Apply keyword search
-            searchBox.classList.add('hidden');
+            searchBox.classList.remove('visible');
             clearIcon.classList.add('hidden');
             searchIcon.classList.remove('hidden');
             searchBarOpen = false;
