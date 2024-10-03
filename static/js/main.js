@@ -7,7 +7,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const articlesContainer = document.getElementById('articles-container');
     const prevPageBtn = document.getElementById('prev-page');
     const nextPageBtn = document.getElementById('next-page');
-    const pageNumbersContainer = document.getElementById('page-numbers'); // Define pageNumbersContainer
+    const pageNumbersContainer = document.getElementById('page-numbers');
     let selectedTopic = 'all';
     const topicNavbar = document.querySelector('.topic-navbar');
     const topicItems = document.querySelectorAll('.topic-item');
@@ -159,7 +159,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // Event listeners for keyword
+    // Event listeners for keyword search
     keywordInput.addEventListener('input', () => fetchArticles(1));
 
     // Initial fetch
@@ -170,4 +170,22 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Check for window resize to recalculate wrapping
     window.addEventListener('resize', checkFlexWrap);
+
+    // Hamburger menu and sidebar behavior
+    const hamburgerMenu = document.getElementById('hamburger-menu');
+    const sideMenu = document.getElementById('side-menu');
+    const contentWrapper = document.getElementById('content-wrapper');
+    let isMenuOpen = false;
+
+    // Toggle side menu
+    hamburgerMenu.addEventListener('click', function() {
+        isMenuOpen = !isMenuOpen;
+        if (isMenuOpen) {
+            sideMenu.classList.add('open');
+            contentWrapper.classList.add('menu-open');
+        } else {
+            sideMenu.classList.remove('open');
+            contentWrapper.classList.remove('menu-open');
+        }
+    });
 });

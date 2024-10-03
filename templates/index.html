@@ -13,35 +13,54 @@
         </div>
     </header>
 
-    <!-- Sticky Navbar -->
-    <nav class="sticky-navbar">
-        <ul id="topic-navbar" class="topic-navbar">
+    <!-- Hamburger Menu (Independent from Navbar) -->
+    <div class="hamburger-menu" id="hamburger-menu">
+        <span class="bar"></span>
+        <span class="bar"></span>
+        <span class="bar"></span>
+    </div>
+
+    <!-- Sidebar Menu -->
+    <div id="side-menu" class="side-menu">
+        <ul>
             <li class="topic-item" data-topic="all">All</li>
             {% for topic in topics %}
                 <li class="topic-item" data-topic="{{ topic }}">{{ topic }}</li>
             {% endfor %}
         </ul>
-    </nav>
+    </div>
 
-    <main>
-        <section class="article-list">
-            <nav class="filter-bar">
-                <form id="search-form" class="search-form">
-                    <input type="text" id="keyword-input" placeholder="Search..." class="search-box">
-                </form>
-            </nav>
+    <div id="content-wrapper">
+        <!-- Sticky Navbar -->
+        <nav class="sticky-navbar">
+            <ul id="topic-navbar" class="topic-navbar">
+                <li class="topic-item" data-topic="all">All</li>
+                {% for topic in topics %}
+                    <li class="topic-item" data-topic="{{ topic }}">{{ topic }}</li>
+                {% endfor %}
+            </ul>
+        </nav>
 
-            <!-- Articles Container -->
-            <div id="articles-container" class="article-grid"></div>
+        <main>
+            <section class="article-list">
+                <nav class="filter-bar">
+                    <form id="search-form" class="search-form">
+                        <input type="text" id="keyword-input" placeholder="Search..." class="search-box">
+                    </form>
+                </nav>
 
-            <!-- Pagination -->
-            <div id="pagination">
-                <button id="prev-page" class="pagination-btn">Previous Page</button>
-                <span id="page-numbers"></span>
-                <button id="next-page" class="pagination-btn">Next Page</button>
-            </div>
-        </section>
-    </main>
+                <!-- Articles Container -->
+                <div id="articles-container" class="article-grid"></div>
+
+                <!-- Pagination -->
+                <div id="pagination">
+                    <button id="prev-page" class="pagination-btn">Previous Page</button>
+                    <span id="page-numbers"></span>
+                    <button id="next-page" class="pagination-btn">Next Page</button>
+                </div>
+            </section>
+        </main>
+    </div>
 
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
 </body>
