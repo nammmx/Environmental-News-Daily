@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Environmental News</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
 <body>
 
@@ -17,7 +18,11 @@
 
     <!-- Magnifying Glass (Search Icon) -->
     <div class="search-icon" id="search-icon">
-        <img src="{{ url_for('static', filename='images/magnifying-glass.png') }}" alt="Search">
+        <i class="fa-solid fa-magnifying-glass"></i>
+        <form id="search-form" class="search-form">
+            <input type="text" id="keyword-input" placeholder="Search..." class="search-box hidden">
+            <button type="submit" class="search-button hidden">Search</button>
+        </form>
     </div>
 
     <!-- Sidebar Menu -->
@@ -28,14 +33,6 @@
                 <li class="topic-item" data-topic="{{ topic }}">{{ topic }}</li>
             {% endfor %}
         </ul>
-    </div>
-
-    <!-- Slide-down Search Bar -->
-    <div id="search-bar" class="search-bar">
-        <form id="search-form" class="search-form">
-            <input type="text" id="keyword-input" placeholder="Search..." class="search-box">
-            <button type="submit" class="search-button">Search</button>
-        </form>
     </div>
 
     <div id="content-wrapper">

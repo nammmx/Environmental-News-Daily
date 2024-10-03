@@ -11,7 +11,6 @@ document.addEventListener('DOMContentLoaded', function() {
     let selectedTopic = 'all'; // Initialize with default topic
     const topicItems = document.querySelectorAll('.side-menu .topic-item');
 
-
     // Source image mapping
     const sourceImageMapping = {
         "BBC News": "bbc.png",
@@ -208,25 +207,27 @@ document.addEventListener('DOMContentLoaded', function() {
         applySelectedTopicStyle(); // Ensure the selected topic stays highlighted when menu toggles
     });
 
-    // Search bar slide down/up functionality
+    // Search icon turns into a search bar
     const searchIcon = document.getElementById('search-icon');
-    const searchBar = document.getElementById('search-bar');
     const searchForm = document.getElementById('search-form');
-    let isSearchBarOpen = false;
+    const searchBox = document.querySelector('.search-box');
+    const searchButton = document.querySelector('.search-button');
+    let searchBarOpen = false;
 
     searchIcon.addEventListener('click', function() {
-        isSearchBarOpen = !isSearchBarOpen;
-        if (isSearchBarOpen) {
-            searchBar.classList.add('open');  // Slide the search bar down
+        if (!searchBarOpen) {
+            searchBox.classList.add('visible');
+            searchButton.classList.add('visible');
+            searchBarOpen = true;
         } else {
-            searchBar.classList.remove('open');  // Slide the search bar up
+            searchBox.classList.remove('visible');
+            searchButton.classList.remove('visible');
+            searchBarOpen = false;
         }
     });
 
     searchForm.addEventListener('submit', function(e) {
         e.preventDefault();
         fetchArticles(1);  // Trigger article search
-        searchBar.classList.remove('open');  // Slide the search bar up after search
-        isSearchBarOpen = false;
     });
 });
