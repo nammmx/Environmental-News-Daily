@@ -23,6 +23,10 @@ body {
 header {
     background-color: #fff;
     padding: 10px 0;
+    display: flex;
+    justify-content: center; /* Centers the logo */
+    align-items: center;
+    position: relative; /* Allows positioning of search bar */
 }
 
 .header-inner {
@@ -119,60 +123,64 @@ header {
     padding-left: 200px;
 }
 
-/* Search Icon and Form */
-.search-icon {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    position: fixed;
+/* Search Bar (Adjusted to the right) */
+.search-container {
+    position: absolute;
     top: 15px;
     right: 15px;
-    z-index: 1100;
-    cursor: pointer;
-    transition: right 0.65s ease;
+    display: flex;
+    align-items: center;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #3f51b5;
+    max-width: 400px;
+    z-index: 1000;
 }
 
-.search-icon i {
-    font-size: 25px; /* Adjust size */
+.search-container .fa-magnifying-glass, .fa-xmark {
+    font-size: 20px;
+    cursor: pointer;
+}
+
+#search-icon {
     color: #333;
+    margin-right: 10px;
+}
+
+#clear-icon {
+    color: #333;
+    position: absolute;
+    right: 10px;
     cursor: pointer;
+    display: none;
 }
 
-.search-icon i:hover {
-    color: #291573; /* Change color on hover */
+.hidden {
+    display: none;
 }
 
-.search-icon input,
-.search-icon button {
-    font-size: 1rem;
-    padding: 8px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    display: none; /* Initially hidden */
-}
-
-.search-icon input.visible,
-.search-icon button.visible {
-    display: block; /* Make search box visible */
-}
-
-.search-icon .search-box {
-    width: 180px;
-    transition: all 0.5s ease;
-}
-
-.search-button {
-    padding: 8px 12px;
-    background-color: #ef3b2b;
-    color: white;
+/* Search Input */
+.search-box {
     border: none;
-    cursor: pointer;
-    margin-left: 10px;
-    border-radius: 4px;
+    outline: none;
+    font-size: 16px;
+    width: 100%;
+    padding: 5px;
+    color: #333;
+    display: none; /* Hidden by default */
+    transition: all 0.5s ease; /* Smooth transition when showing the input */
 }
 
-.search-button:hover {
-    background-color: #291573;
+.search-box.visible {
+    display: block; /* Show search box */
+}
+
+.search-box:focus {
+    border: none;
+    outline: none;
+}
+
+.search-box::placeholder {
+    color: #aaa;
 }
 
 /* Topic items */
@@ -302,7 +310,7 @@ main {
 .article-summary {
     font-family: 'Georgia', serif;
     font-size: 0.825rem;
-    color: #333;
+    color: #333;    
     margin: 0;
     position: absolute;
     top: 0;

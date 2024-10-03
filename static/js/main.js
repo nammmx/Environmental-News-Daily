@@ -4,12 +4,16 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // DOM elements
     const keywordInput = document.getElementById('keyword-input');
+    const searchIcon = document.getElementById('search-icon');
+    const clearIcon = document.getElementById('clear-icon');
+    const searchBox = document.querySelector('.search-box');
     const articlesContainer = document.getElementById('articles-container');
     const prevPageBtn = document.getElementById('prev-page');
     const nextPageBtn = document.getElementById('next-page');
     const pageNumbersContainer = document.getElementById('page-numbers');
     let selectedTopic = 'all'; // Initialize with default topic
     const topicItems = document.querySelectorAll('.side-menu .topic-item');
+    let searchBarOpen = false;
 
     // Source image mapping
     const sourceImageMapping = {
@@ -29,9 +33,40 @@ document.addEventListener('DOMContentLoaded', function() {
         return new Date(dateString).toLocaleDateString(undefined, options);
     }
 
+    // Toggle search bar visibility
+    searchIcon.addEventListener('click', function() {
+        searchIcon.classList.add('hidden');
+        searchBox.classList.remove('hidden');
+        searchBox.focus();
+        clearIcon.classList.remove('hidden');
+        searchBarOpen = true;
+    });
+
+    // Clear search and reset to magnifying glass
+    clearIcon.addEventListener('click', function() {
+        keywordInput.value = ''; // Clear input
+        clearIcon.classList.add('hidden');
+        searchBox.classList.add('hidden');
+        searchIcon.classList.remove('hidden');
+        searchBarOpen = false;
+        fetchArticles(); // Reset article list with no keyword
+    });
+
+    // Submit search on Enter keypress
+    keywordInput.addEventListener('keypress', function(event) {
+        if (event.key === 'Enter') {
+            event.preventDefault();
+            fetchArticles(); // Apply keyword search
+            searchBox.classList.add('hidden');
+            clearIcon.classList.add('hidden');
+            searchIcon.classList.remove('hidden');
+            searchBarOpen = false;
+        }
+    });
+
     // Fetch and display articles with smooth transition
     function fetchArticles(page = 1) {
-        const keyword = keywordInput.value;
+        const keyword = keywordInput.value.trim();
 
         const params = new URLSearchParams({
             topic: selectedTopic,
@@ -205,29 +240,5 @@ document.addEventListener('DOMContentLoaded', function() {
             hamburgerMenu.classList.remove('active'); // Remove active class to revert to bars
         }
         applySelectedTopicStyle(); // Ensure the selected topic stays highlighted when menu toggles
-    });
-
-    // Search icon turns into a search bar
-    const searchIcon = document.getElementById('search-icon');
-    const searchForm = document.getElementById('search-form');
-    const searchBox = document.querySelector('.search-box');
-    const searchButton = document.querySelector('.search-button');
-    let searchBarOpen = false;
-
-    searchIcon.addEventListener('click', function() {
-        if (!searchBarOpen) {
-            searchBox.classList.add('visible');
-            searchButton.classList.add('visible');
-            searchBarOpen = true;
-        } else {
-            searchBox.classList.remove('visible');
-            searchButton.classList.remove('visible');
-            searchBarOpen = false;
-        }
-    });
-
-    searchForm.addEventListener('submit', function(e) {
-        e.preventDefault();
-        fetchArticles(1);  // Trigger article search
     });
 });
