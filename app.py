@@ -9,8 +9,8 @@ from flask_caching import Cache
 app = Flask(__name__)
 
 # Configure caching
-# cache = Cache(config={'CACHE_TYPE': 'SimpleCache', 'CACHE_DEFAULT_TIMEOUT': 1800})  # Cache timeout in seconds (10 mins)
-# cache.init_app(app)
+cache = Cache(config={'CACHE_TYPE': 'SimpleCache', 'CACHE_DEFAULT_TIMEOUT': 1800})  # Cache timeout in seconds (10 mins)
+cache.init_app(app)
 
 # Database connection setup
 load_dotenv()
@@ -22,7 +22,7 @@ db_url = (
 engine = create_engine(db_url)
 
 # Load the entire dataset into memory (cached)
-# @cache.cached(timeout=1800, key_prefix='data_in_memory')  # Cache this function for 10 minutes
+@cache.cached(timeout=1800, key_prefix='data_in_memory')  # Cache this function for 10 minutes
 def load_data():
     query = """
         SELECT publish_date, title, topic1, summary, link, image, topic2, source
@@ -103,7 +103,7 @@ def get_articles():
 # Route to refresh the in-memory dataset
 @app.route('/refresh_data')
 def refresh_data():
-    # cache.delete('data_in_memory')  # Clear the cached data
+    cache.delete('data_in_memory')  # Clear the cached data
     load_data()  # Reload the data and cache it
     return "Data refreshed", 200
 

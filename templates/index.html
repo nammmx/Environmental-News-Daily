@@ -7,17 +7,17 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
 </head>
 <body>
-    <header>
-        <div class="header-inner">
-            <img src="{{ url_for('static', filename='images/header-logo.png') }}" alt="Environmental News Logo" class="logo">
-        </div>
-    </header>
 
-    <!-- Hamburger Menu (Independent from Navbar) -->
+    <!-- Hamburger Menu (Independent from Sidebar) -->
     <div class="hamburger-menu" id="hamburger-menu">
         <span class="bar"></span>
         <span class="bar"></span>
         <span class="bar"></span>
+    </div>
+
+    <!-- Magnifying Glass (Search Icon) -->
+    <div class="search-icon" id="search-icon">
+        <img src="{{ url_for('static', filename='images/magnifying-glass.png') }}" alt="Search">
     </div>
 
     <!-- Sidebar Menu -->
@@ -30,25 +30,22 @@
         </ul>
     </div>
 
-    <div id="content-wrapper">
-        <!-- Sticky Navbar -->
-        <nav class="sticky-navbar">
-            <ul id="topic-navbar" class="topic-navbar">
-                <li class="topic-item" data-topic="all">All</li>
-                {% for topic in topics %}
-                    <li class="topic-item" data-topic="{{ topic }}">{{ topic }}</li>
-                {% endfor %}
-            </ul>
-        </nav>
+    <!-- Slide-down Search Bar -->
+    <div id="search-bar" class="search-bar">
+        <form id="search-form" class="search-form">
+            <input type="text" id="keyword-input" placeholder="Search..." class="search-box">
+            <button type="submit" class="search-button">Search</button>
+        </form>
+    </div>
 
+    <div id="content-wrapper">
+        <header>
+            <div class="header-inner">
+                <img src="{{ url_for('static', filename='images/header-logo.png') }}" alt="Environmental News Logo" class="logo">
+            </div>
+        </header>
         <main>
             <section class="article-list">
-                <nav class="filter-bar">
-                    <form id="search-form" class="search-form">
-                        <input type="text" id="keyword-input" placeholder="Search..." class="search-box">
-                    </form>
-                </nav>
-
                 <!-- Articles Container -->
                 <div id="articles-container" class="article-grid"></div>
 

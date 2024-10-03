@@ -8,9 +8,9 @@ document.addEventListener('DOMContentLoaded', function() {
     const prevPageBtn = document.getElementById('prev-page');
     const nextPageBtn = document.getElementById('next-page');
     const pageNumbersContainer = document.getElementById('page-numbers');
-    let selectedTopic = 'all';
-    const topicNavbar = document.querySelector('.topic-navbar');
-    const topicItems = document.querySelectorAll('.topic-item');
+    let selectedTopic = 'all'; // Initialize with default topic
+    const topicItems = document.querySelectorAll('.side-menu .topic-item');
+
 
     // Source image mapping
     const sourceImageMapping = {
@@ -30,27 +30,7 @@ document.addEventListener('DOMContentLoaded', function() {
         return new Date(dateString).toLocaleDateString(undefined, options);
     }
 
-    // Detect if flexbox wrapping occurs
-    function checkFlexWrap() {
-        const initialHeight = topicNavbar.clientHeight;
-        topicNavbar.style.flexWrap = 'nowrap';
-        const singleLineHeight = topicNavbar.clientHeight;
-        topicNavbar.style.flexWrap = ''; // Reset back to normal
-
-        if (initialHeight > singleLineHeight) {
-            // If wrapping occurs, set smaller padding
-            topicItems.forEach(item => {
-                item.style.padding = '10px 14px';
-            });
-        } else {
-            // If no wrapping, set default padding
-            topicItems.forEach(item => {
-                item.style.padding = '20px 14px';
-            });
-        }
-    }
-
-    // Fetch and display articles
+    // Fetch and display articles with smooth transition
     function fetchArticles(page = 1) {
         const keyword = keywordInput.value;
 
@@ -60,13 +40,21 @@ document.addEventListener('DOMContentLoaded', function() {
             page: page
         });
 
-        fetch(`/get_articles?${params.toString()}`)
-            .then(response => response.json())
-            .then(data => {
-                renderArticles(data.articles);
-                updatePagination(data.current_page, data.total_pages);
-                window.scrollTo(0, 0);  // Scroll to top
-            });
+        // Fade out current articles before loading new ones
+        articlesContainer.classList.add('hide');
+
+        setTimeout(() => {
+            fetch(`/get_articles?${params.toString()}`)
+                .then(response => response.json())
+                .then(data => {
+                    renderArticles(data.articles);
+                    updatePagination(data.current_page, data.total_pages);
+                    window.scrollTo(0, 0);  // Scroll to top
+
+                    // Fade in new articles
+                    articlesContainer.classList.remove('hide');
+                });
+        }, 650); // Wait for the fade-out transition to finish (same as the 0.65s transition time)
     }
 
     // Render articles
@@ -94,12 +82,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 <div class="article-image">
                     <img src="${article.image}" alt="${article.title}">
                 </div>
-                <p class="article-date">${formatDate(article.publish_date)}</p> <!-- Date directly below image -->
+                <p class="article-date">${formatDate(article.publish_date)}</p>
                 <h2 class="article-title">${article.title}</h2>
                 <img src="/static/images/${sourceImage}" alt="${article.source}" class="article-source-image">
             </div>
             <div class="article-summary">
-                <button class="close-summary">&times;</button> <!-- X button to close summary -->
+                <button class="close-summary">&times;</button>
                 <h3 class="summary-caption">Summary</h3>
                 <div class="summary-text">${article.summary}</div>
                 <div class="summary-buttons">
@@ -143,33 +131,61 @@ document.addEventListener('DOMContentLoaded', function() {
         pageNumbersContainer.innerHTML = `${current} of ${total}`;
     }
 
-    // Event listeners for navbar topics
+    // Function to select the clicked topic and keep its style
+    function selectTopic(item) {
+        selectedTopic = item.getAttribute('data-topic');
+
+        // Remove selected class from all topics
+        topicItems.forEach(topic => topic.classList.remove('selected-topic'));
+
+        // Add selected class to the clicked topic
+        item.classList.add('selected-topic');
+
+        // Store the selected topic in localStorage
+        localStorage.setItem('selectedTopic', selectedTopic);
+    }
+
+    // Event listeners for sidebar topics
     topicItems.forEach(item => {
         item.addEventListener('click', function() {
-            selectedTopic = this.getAttribute('data-topic');
-
-            // Remove selected class from all topics
-            topicItems.forEach(topic => topic.classList.remove('selected-topic'));
-
-            // Add selected class to the clicked topic
-            this.classList.add('selected-topic');
+            selectTopic(this);
 
             // Fetch articles for the selected topic
             fetchArticles(1);
+
+            // Close the menu after selecting a topic
+            sideMenu.classList.remove('open');
+            contentWrapper.classList.remove('menu-open');
+            isMenuOpen = false;
+
+            // Reset hamburger menu bars color to black and reverse animation
+            hamburgerMenu.classList.remove('active');
         });
     });
+
+    // Function to apply the selected topic style
+    function applySelectedTopicStyle() {
+        const storedTopic = localStorage.getItem('selectedTopic');
+        if (storedTopic) {
+            selectedTopic = storedTopic;
+            topicItems.forEach(item => {
+                if (item.getAttribute('data-topic') === selectedTopic) {
+                    item.classList.add('selected-topic');
+                } else {
+                    item.classList.remove('selected-topic');
+                }
+            });
+        }
+    }
+
+    // Apply the selected topic style on page load
+    applySelectedTopicStyle();
 
     // Event listeners for keyword search
     keywordInput.addEventListener('input', () => fetchArticles(1));
 
     // Initial fetch
     fetchArticles();
-
-    // Call the function to check for flex wrap and adjust padding
-    checkFlexWrap();
-
-    // Check for window resize to recalculate wrapping
-    window.addEventListener('resize', checkFlexWrap);
 
     // Hamburger menu and sidebar behavior
     const hamburgerMenu = document.getElementById('hamburger-menu');
@@ -183,9 +199,34 @@ document.addEventListener('DOMContentLoaded', function() {
         if (isMenuOpen) {
             sideMenu.classList.add('open');
             contentWrapper.classList.add('menu-open');
+            hamburgerMenu.classList.add('active'); // Add active class to animate to X
         } else {
             sideMenu.classList.remove('open');
             contentWrapper.classList.remove('menu-open');
+            hamburgerMenu.classList.remove('active'); // Remove active class to revert to bars
         }
+        applySelectedTopicStyle(); // Ensure the selected topic stays highlighted when menu toggles
+    });
+
+    // Search bar slide down/up functionality
+    const searchIcon = document.getElementById('search-icon');
+    const searchBar = document.getElementById('search-bar');
+    const searchForm = document.getElementById('search-form');
+    let isSearchBarOpen = false;
+
+    searchIcon.addEventListener('click', function() {
+        isSearchBarOpen = !isSearchBarOpen;
+        if (isSearchBarOpen) {
+            searchBar.classList.add('open');  // Slide the search bar down
+        } else {
+            searchBar.classList.remove('open');  // Slide the search bar up
+        }
+    });
+
+    searchForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        fetchArticles(1);  // Trigger article search
+        searchBar.classList.remove('open');  // Slide the search bar up after search
+        isSearchBarOpen = false;
     });
 });
