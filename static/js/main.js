@@ -36,20 +36,20 @@ document.addEventListener('DOMContentLoaded', function() {
     // Toggle search bar visibility
     searchIcon.addEventListener('click', function() {
         if (!searchBarOpen) {
-            searchBox.classList.add('visible');
-            searchIcon.classList.add('hidden');
-            clearIcon.classList.remove('hidden');
+            keywordInput.classList.add('visible'); // Show the search box
+            searchIcon.style.display = 'none';    // Hide the magnifying glass
+            clearIcon.classList.add('visible');   // Show the clear (X) icon
             searchBarOpen = true;
             keywordInput.focus(); // Focus on input when opened
         }
     });
 
-    // Clear search and reset to magnifying glass
+    // Clear search and reset to magnifying glass when 'X' is clicked
     clearIcon.addEventListener('click', function() {
-        keywordInput.value = ''; // Clear input
-        searchBox.classList.remove('visible');
-        clearIcon.classList.add('hidden');
-        searchIcon.classList.remove('hidden');
+        keywordInput.value = '';                 // Clear input
+        keywordInput.classList.remove('visible'); // Hide the search box
+        clearIcon.classList.remove('visible');   // Hide the clear (X) icon
+        searchIcon.style.display = 'inline';     // Show the magnifying glass
         searchBarOpen = false;
         fetchArticles(); // Reset article list with no keyword
     });
@@ -60,8 +60,8 @@ document.addEventListener('DOMContentLoaded', function() {
             event.preventDefault();
             fetchArticles(); // Apply keyword search
             searchBox.classList.remove('visible');
-            clearIcon.classList.add('hidden');
-            searchIcon.classList.remove('hidden');
+            clearIcon.classList.remove('visible');
+            searchIcon.style.display = 'inline';
             searchBarOpen = false;
         }
     });
@@ -242,5 +242,15 @@ document.addEventListener('DOMContentLoaded', function() {
             hamburgerMenu.classList.remove('active'); // Remove active class to revert to bars
         }
         applySelectedTopicStyle(); // Ensure the selected topic stays highlighted when menu toggles
+    });
+    
+    // Close menu when clicking outside
+    document.addEventListener('click', function(event) {
+        if (isMenuOpen && !sideMenu.contains(event.target) && event.target !== hamburgerMenu) {
+            isMenuOpen = false;
+            hamburgerMenu.classList.remove('active');
+            sideMenu.classList.remove('open');
+            contentWrapper.classList.remove('menu-open');
+        }
     });
 });

@@ -13,6 +13,22 @@ body {
     overflow-x: hidden;
 }
 
+/* Sticky Bar for Hamburger Menu and Search */
+.sticky-bar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 60px; /* Adjust the height if needed */
+    background-color: white; /* Your chosen solid background color */
+    z-index: 1000;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 20px; /* Adjust padding if needed */
+    box-shadow: 0px 2px 10px rgba(0, 0, 0, 0.1); /* Optional: Add a subtle shadow */
+}
+
 #content-wrapper {
     transition: padding-left 0.65s ease;
     width: 100%;
@@ -24,15 +40,17 @@ header {
     background-color: #fff;
     padding: 10px 0;
     display: flex;
-    justify-content: center; /* Centers the logo */
+    justify-content: space-between; /* Align hamburger to left, search to right */
     align-items: center;
-    position: relative; /* Allows positioning of search bar */
+    position: relative;
 }
 
 .header-inner {
     max-width: 1200px;
     margin: 0 auto;
-    text-align: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 .logo {
@@ -46,13 +64,14 @@ header {
     position: fixed;
     top: 15px;
     left: 15px;
-    z-index: 1100;
+    z-index: 1300;
     cursor: pointer;
     transition: left 0.65s ease;
 }
 
 .hamburger-menu.active {
     left: 155px;
+    z-index: 1300;
 }
 
 .hamburger-menu .bar {
@@ -94,7 +113,7 @@ header {
     max-height: 100vh;
     background-color: #333;
     color: white;
-    z-index: 1000;
+    z-index: 1100;
     transition: left 0.65s ease;
     padding: 20px;
     box-sizing: border-box;
@@ -117,41 +136,53 @@ header {
 
 .side-menu.open {
     left: 0;
+    z-index: 1100;
 }
 
 #content-wrapper.menu-open {
     padding-left: 200px;
 }
 
-/* Search Bar (Adjusted to the right) */
+/* Search Bar */
 .search-container {
-    position: absolute;
+    position: fixed; /* Fixed position to align with hamburger */
     top: 15px;
     right: 15px;
     display: flex;
     align-items: center;
-    padding-bottom: 10px;
-    border-bottom: 2px solid #3f51b5;
     max-width: 400px;
-    z-index: 1000;
+    z-index: 1100;
+    border-bottom: 2px solid #3f51b5;
 }
 
-.search-container .fa-magnifying-glass, .fa-xmark {
-    font-size: 20px;
-    cursor: pointer;
+#keyword-input {
+    flex-grow: 1;
+    padding: 5px;
+    border: none;
+    outline: none;
+    font-size: 16px;
+    color: #333;
+    transition: all 0.5s ease;
+    display: none; /* Hidden by default */
+}
+
+#keyword-input.visible {
+    display: block;
 }
 
 #search-icon {
-    color: #333;
     margin-right: 10px;
+    color: #333;
+    cursor: pointer;
 }
 
 #clear-icon {
-    color: #333;
-    position: absolute;
-    right: 10px;
-    cursor: pointer;
     display: none;
+    cursor: pointer;
+}
+
+#clear-icon.visible {
+    display: block;
 }
 
 .hidden {
@@ -310,7 +341,7 @@ main {
 .article-summary {
     font-family: 'Georgia', serif;
     font-size: 0.825rem;
-    color: #333;    
+    color: #333;
     margin: 0;
     position: absolute;
     top: 0;
