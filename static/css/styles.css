@@ -13,34 +13,28 @@ body {
     overflow-x: hidden;
 }
 
-/* Sticky Bar for Hamburger Menu and Search */
+/* Sticky Bar for Hamburger Menu, Search, and Side Menu */
 .sticky-bar {
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
-    height: 60px; /* Adjust the height if needed */
-    background-color: white; /* Your chosen solid background color */
+    height: 60px;
+    background-color: white;
     z-index: 1000;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 10px 20px; /* Adjust padding if needed */
-    box-shadow: 0px 2px 10px rgba(0, 0, 0, 0.1); /* Optional: Add a subtle shadow */
-}
-
-#content-wrapper {
-    transition: padding-left 0.65s ease;
-    width: 100%;
-    padding-left: 0;
+    padding: 10px 20px;
+    box-shadow: 0px 2px 10px rgba(0, 0, 0, 0.1);
 }
 
 /* Header Styling */
 header {
-    background-color: #fff;
+    background-color: #E5E4E4;
     padding: 10px 0;
     display: flex;
-    justify-content: space-between; /* Align hamburger to left, search to right */
+    justify-content: space-between;
     align-items: center;
     position: relative;
 }
@@ -103,17 +97,16 @@ header {
     background-color: white;
 }
 
-/* Side Menu */
+/* Side Menu inside Sticky Bar */
 .side-menu {
-    position: fixed;
-    top: 0;
-    left: -200px;
+    position: fixed;  /* Fixed to the viewport */
+    top: 0;           /* Start from the top */
+    left: -200px;     /* Hidden by default */
     width: 200px;
-    height: 100%;
-    max-height: 100vh;
+    height: 100vh;    /* Full screen height */
     background-color: #333;
     color: white;
-    z-index: 1100;
+    z-index: 1200;    /* Make sure it's on top of other elements */
     transition: left 0.65s ease;
     padding: 20px;
     box-sizing: border-box;
@@ -136,7 +129,6 @@ header {
 
 .side-menu.open {
     left: 0;
-    z-index: 1100;
 }
 
 #content-wrapper.menu-open {
@@ -145,25 +137,25 @@ header {
 
 /* Search Bar */
 .search-container {
-    position: fixed; /* Fixed position to align with hamburger */
+    position: fixed;
     top: 15px;
     right: 15px;
     display: flex;
     align-items: center;
     max-width: 400px;
     z-index: 1100;
-    border-bottom: 2px solid #3f51b5;
+    border-bottom: 2px solid #ef3b2b;
 }
 
 #keyword-input {
     flex-grow: 1;
-    padding: 5px;
+    padding: 5px 5px 7px 5px;
     border: none;
     outline: none;
     font-size: 16px;
     color: #333;
     transition: all 0.5s ease;
-    display: none; /* Hidden by default */
+    display: none;
 }
 
 #keyword-input.visible {
@@ -171,14 +163,17 @@ header {
 }
 
 #search-icon {
-    margin-right: 10px;
+    margin: 0px 5px 5px 5px;
     color: #333;
     cursor: pointer;
+    font-size: 25px;
 }
 
 #clear-icon {
     display: none;
     cursor: pointer;
+    font-size: 18px;
+    margin: 0 7px 5px 0;
 }
 
 #clear-icon.visible {
@@ -187,31 +182,6 @@ header {
 
 .hidden {
     display: none;
-}
-
-/* Search Input */
-.search-box {
-    border: none;
-    outline: none;
-    font-size: 16px;
-    width: 100%;
-    padding: 5px;
-    color: #333;
-    display: none; /* Hidden by default */
-    transition: all 0.5s ease; /* Smooth transition when showing the input */
-}
-
-.search-box.visible {
-    display: block; /* Show search box */
-}
-
-.search-box:focus {
-    border: none;
-    outline: none;
-}
-
-.search-box::placeholder {
-    color: #aaa;
 }
 
 /* Topic items */
@@ -240,6 +210,11 @@ header {
     color: #ef3b2b !important;
 }
 
+#content-wrapper {
+    transition: padding-left 0.65s ease; /* Smooth transition for padding-left */
+    padding-top: 100px;
+}
+
 /* Main content */
 main {
     margin-top: 20px;
@@ -255,7 +230,6 @@ main {
     grid-gap: 50px 25px;
     padding: 0 20px;
     margin: 20px 0;
-    margin-left: 0;
     max-width: 100%;
     opacity: 1;
     transition: opacity 0.45s ease;
@@ -357,7 +331,12 @@ main {
     padding: 20px;
     overflow-y: auto;
     pointer-events: none;
-    background-color: #f0f0f0;
+    background-color: white;
+}
+
+.article-summary .summary-text  {
+    max-height: 300px;
+    overflow-y: auto;
 }
 
 .article.summary-active {
@@ -454,7 +433,7 @@ main {
 
 @media (max-width: 768px) {
     main {
-        padding: 0 20px;
+        padding: 0 10px;
     }
 
     .article-grid {

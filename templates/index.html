@@ -9,7 +9,7 @@
 </head>
 <body>
 
-    <!-- Sticky Bar for Hamburger Menu and Search -->
+    <!-- Sticky Bar for Hamburger Menu, Search, and Side Menu -->
     <div class="sticky-bar">
         <!-- Hamburger Menu -->
         <div class="hamburger-menu" id="hamburger-menu">
@@ -24,16 +24,16 @@
             <input type="text" id="keyword-input" class="search-box hidden" placeholder="Search...">
             <i class="fa-solid fa-x hidden" id="clear-icon"></i>
         </div>
-    </div>
 
-    <!-- Sidebar Menu -->
-    <div id="side-menu" class="side-menu">
-        <ul>
-            <li class="topic-item" data-topic="all">All</li>
-            {% for topic in topics %}
-                <li class="topic-item" data-topic="{{ topic }}">{{ topic }}</li>
-            {% endfor %}
-        </ul>
+        <!-- Sidebar Menu inside the Sticky Bar -->
+        <div id="side-menu" class="side-menu">
+            <ul>
+                <li class="topic-item" data-topic="all">All</li>
+                {% for topic in topics %}
+                    <li class="topic-item" data-topic="{{ topic }}">{{ topic }}</li>
+                {% endfor %}
+            </ul>
+        </div>
     </div>
 
     <div id="content-wrapper">
