@@ -13,12 +13,18 @@ cache = Cache(config={'CACHE_TYPE': 'SimpleCache', 'CACHE_DEFAULT_TIMEOUT': 1800
 cache.init_app(app)
 
 # Database connection setup
-load_dotenv()
+#load_dotenv()
 
 db_url = (
     f"redshift+psycopg2://{os.getenv('REDSHIFT_USER')}:{os.getenv('REDSHIFT_PASSWORD')}"
     f"@{os.getenv('REDSHIFT_HOST')}:{os.getenv('REDSHIFT_PORT')}/{os.getenv('REDSHIFT_DBNAME')}"
 )
+
+db_url = (
+    f"redshift+psycopg2://admin:TruongnamHungiang1997."
+    f"@state-of-the-earth.009694569518.eu-north-1.redshift-serverless.amazonaws.com:5439/state_of_the_earth"
+)
+
 engine = create_engine(db_url)
 
 # Load the entire dataset into memory (cached)
@@ -103,8 +109,8 @@ def get_articles():
 # Route to refresh the in-memory dataset
 @app.route('/refresh_data')
 def refresh_data():
-    cache.delete('data_in_memory')  # Clear the cached data
-    load_data()  # Reload the data and cache it
+    cache.clear()  # Clear all cache
+    load_data()  # Reload and cache the data
     return "Data refreshed", 200
 
 if __name__ == '__main__':

@@ -16,6 +16,9 @@ document.addEventListener('DOMContentLoaded', function() {
     const hamburgerMenu = document.getElementById('hamburger-menu');
     const sideMenu = document.getElementById('side-menu');
     const contentWrapper = document.getElementById('content-wrapper');
+    const stickyBar = document.querySelector('.sticky-bar');
+    const header = document.querySelector('header');
+    let lastScrollY = window.scrollY;
     let selectedTopic = 'all'; // Initialize with default topic
     const topicItems = document.querySelectorAll('.side-menu .topic-item');
 
@@ -37,7 +40,17 @@ document.addEventListener('DOMContentLoaded', function() {
         return new Date(dateString).toLocaleDateString(undefined, options);
     }
 
-    // Toggle search bar visibility
+    // Track if search bar is open and screen size is below 590px
+    function toggleSoteVisibility() {
+        const stickyTitle = document.querySelector('.sticky-title');
+        if (window.innerWidth <= 590 && searchBarOpen) {
+            stickyTitle.classList.add('hide');
+        } else {
+            stickyTitle.classList.remove('hide');
+        }
+    }
+
+    // Toggle search bar visibility and handle sote visibility
     searchIcon.addEventListener('click', function() {
         if (!searchBarOpen) {
             keywordInput.classList.add('visible'); // Show the search box
@@ -45,10 +58,11 @@ document.addEventListener('DOMContentLoaded', function() {
             clearIcon.classList.add('visible');   // Show the clear (X) icon
             searchBarOpen = true;
             keywordInput.focus(); // Focus on input when opened
+            toggleSoteVisibility(); // Hide sote if screen size is small
         }
     });
 
-    // Clear search and reset to magnifying glass when 'X' is clicked
+    // Clear search and reset visibility when 'X' is clicked
     clearIcon.addEventListener('click', function() {
         keywordInput.value = '';                 // Clear input
         keywordInput.classList.remove('visible'); // Hide the search box
@@ -56,7 +70,11 @@ document.addEventListener('DOMContentLoaded', function() {
         searchIcon.style.display = 'inline';     // Show the magnifying glass
         searchBarOpen = false;
         fetchArticles(); // Reset article list with no keyword
+        toggleSoteVisibility(); // Show sote if appropriate
     });
+
+    // Adjust sote visibility on window resize
+    window.addEventListener('resize', toggleSoteVisibility);
 
     // Submit search on Enter keypress
     keywordInput.addEventListener('keypress', function(event) {
@@ -225,19 +243,25 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Hamburger menu and sidebar behavior
     hamburgerMenu.addEventListener('click', function(event) {
-        event.stopPropagation(); // Prevent the event from propagating to the document
-
+        event.stopPropagation();
         isMenuOpen = !isMenuOpen;
+    
         if (isMenuOpen) {
             sideMenu.classList.add('open');
             contentWrapper.classList.add('menu-open');
-            hamburgerMenu.classList.add('active'); // Add active class to animate to X
+            hamburgerMenu.classList.add('active');
+            
+            // Only add 'menu-open' to sticky bar if it's scrolled past the header
+            if (stickyBar.classList.contains('scrolled')) {
+                stickyBar.classList.add('menu-open');
+            }
         } else {
             sideMenu.classList.remove('open');
             contentWrapper.classList.remove('menu-open');
-            hamburgerMenu.classList.remove('active'); // Remove active class to revert to bars
+            hamburgerMenu.classList.remove('active');
+            stickyBar.classList.remove('menu-open');
         }
-        applySelectedTopicStyle(); // Ensure the selected topic stays highlighted when menu toggles
+        applySelectedTopicStyle();
     });
 
     // Close menu when clicking outside the menu
@@ -253,5 +277,41 @@ document.addEventListener('DOMContentLoaded', function() {
     // Prevent closing the menu when clicking inside it
     sideMenu.addEventListener('click', function(event) {
         event.stopPropagation(); // Ensure that clicking inside the side menu doesn't close it
+    });
+
+    // Border toggle for sticky bar based on scroll position and display title
+    function toggleStickyBarBorder() {
+        const headerBottom = header.getBoundingClientRect().bottom;
+        const stickyBarBottom = stickyBar.getBoundingClientRect().bottom;
+        const currentScrollY = window.scrollY;
+        const isScrollingDown = currentScrollY > lastScrollY;
+        lastScrollY = currentScrollY;
+    
+        if (isScrollingDown && stickyBarBottom >= headerBottom) {
+            stickyBar.classList.add('scrolled');
+    
+            // Ensure 'menu-open' stays applied if menu is open and scrolled
+            if (isMenuOpen) {
+                stickyBar.classList.add('menu-open');
+            }
+        } else if (!isScrollingDown && stickyBarBottom <= headerBottom) {
+            stickyBar.classList.remove('scrolled');
+            stickyBar.classList.remove('menu-open'); // Remove 'menu-open' when scrolling up past header
+        }
+    }
+    
+    toggleStickyBarBorder();
+    window.addEventListener('scroll', toggleStickyBarBorder);
+
+
+    // Toggle search bar visibility
+    searchIcon.addEventListener('click', function() {
+        if (!searchBarOpen) {
+            keywordInput.classList.add('visible');
+            searchIcon.style.display = 'none';    
+            clearIcon.classList.add('visible');   
+            searchBarOpen = true;
+            keywordInput.focus(); 
+        }
     });
 });

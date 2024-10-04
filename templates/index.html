@@ -3,14 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Environmental News</title>
+    <title>SOTE NEWS</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Gravitas+One&family=Rozha+One&display=swap" rel="stylesheet">
 </head>
 <body>
 
     <!-- Sticky Bar for Hamburger Menu, Search, and Side Menu -->
     <div class="sticky-bar">
+        <!-- sticky bar title -->
+        <h1 class="sticky-title">sote</h1>
         <!-- Hamburger Menu -->
         <div class="hamburger-menu" id="hamburger-menu">
             <span class="bar"></span>
@@ -27,6 +30,7 @@
 
         <!-- Sidebar Menu inside the Sticky Bar -->
         <div id="side-menu" class="side-menu">
+            <h1>Topics</h1>
             <ul>
                 <li class="topic-item" data-topic="all">All</li>
                 {% for topic in topics %}
@@ -39,7 +43,7 @@
     <div id="content-wrapper">
         <header>
             <div class="header-inner">
-                <img src="{{ url_for('static', filename='images/header-logo.png') }}" alt="Environmental News Logo" class="logo">
+                <h1 class="logo">sote news</h1>
             </div>
         </header>
         <main>
