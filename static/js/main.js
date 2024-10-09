@@ -62,42 +62,38 @@ document.addEventListener('DOMContentLoaded', function() {
     // Fetch and display articles with smooth transition
     function fetchArticles(page = 1) {
         const keyword = keywordInput.value.trim();
-
+    
+        // Fetch params with selected filters and current page
         const params = new URLSearchParams({
             topic: selectedTopic,
             source: selectedSource,
             keyword: keyword,
             page: page
         });
-
+    
         if (isInitialLoad) {
             showLoadingScreen();
         } else {
             articlesContainer.classList.add('hide');
         }
-
-        const fetchPromise = isInitialLoad || !cachedArticles
-            ? fetch(`/get_articles?${params.toString()}`).then(response => response.json())
-            : Promise.resolve(cachedArticles);
-
-        fetchPromise.then(data => {
-            if (isInitialLoad || !cachedArticles) {
-                cachedArticles = data;
-            }
-
-            setTimeout(() => {
-                renderArticles(data.articles);
-                updatePagination(data.current_page, data.total_pages);
-                window.scrollTo(0, 0);
-
-                if (isInitialLoad) {
-                    hideLoadingScreen();
-                    isInitialLoad = false;
-                } else {
-                    articlesContainer.classList.remove('hide');
-                }
-            }, isInitialLoad ? 0 : 650);
-        });
+    
+        // Fetch articles without relying on `cachedArticles` for filtered results
+        fetch(`/get_articles?${params.toString()}`)
+            .then(response => response.json())
+            .then(data => {
+                setTimeout(() => {
+                    renderArticles(data.articles);
+                    updatePagination(data.current_page, data.total_pages);
+                    window.scrollTo(0, 0);
+    
+                    if (isInitialLoad) {
+                        hideLoadingScreen();
+                        isInitialLoad = false;
+                    } else {
+                        articlesContainer.classList.remove('hide');
+                    }
+                }, isInitialLoad ? 0 : 650);
+            });
     }
 
     // Render articles
@@ -349,14 +345,46 @@ document.addEventListener('DOMContentLoaded', function() {
     toggleStickyBarBorder();
     window.addEventListener('scroll', toggleStickyBarBorder);
 
-    // Toggle search bar visibility
     searchIcon.addEventListener('click', function() {
         if (!searchBarOpen) {
             keywordInput.classList.add('visible');
-            searchIcon.style.display = 'none';    
-            clearIcon.classList.add('visible');   
+            searchIcon.style.display = 'none';
+            clearIcon.classList.add('visible');
             searchBarOpen = true;
-            keywordInput.focus(); 
+            keywordInput.focus();
+            
+            // Hide the sticky title when the search bar is open
+            document.querySelector('.sticky-title').classList.add('hide');
         }
+    });
+    
+    clearIcon.addEventListener('click', function() {
+        keywordInput.value = '';
+        keywordInput.classList.remove('visible');
+        searchIcon.style.display = 'block';
+        clearIcon.classList.remove('visible');
+        searchBarOpen = false;
+        fetchArticles(1);
+        
+        // Show the sticky title when the search bar is closed
+        document.querySelector('.sticky-title').classList.remove('hide');
+    });
+
+    document.getElementById('home-button').addEventListener('click', function() {
+        // Reset selected topic and source to 'all'
+        selectedTopic = 'all';
+        selectedSource = 'all';
+        keywordInput.value = '';  // Clear keyword search
+        
+        // Remove selected class from all topics and sources
+        topicItems.forEach(topic => topic.classList.remove('selected-topic'));
+        sourceItems.forEach(source => source.classList.remove('selected-source'));
+    
+        // Reset pagination and fetch articles
+        currentPage = 1;
+        fetchArticles(currentPage);
+    
+        // Scroll to top
+        window.scrollTo({ top: 0, behavior: 'smooth' });
     });
 });

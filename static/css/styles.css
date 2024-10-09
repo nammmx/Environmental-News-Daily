@@ -49,7 +49,7 @@ body {
     border: 5px solid #ef3b2b;
     border-top: 5px solid #333;
     border-radius: 50%;
-    animation: spin 1s linear infinite;
+    animation: spin 3s linear infinite;
     margin: 0 auto;
   }
   
@@ -79,6 +79,7 @@ body {
 }
 
 .sticky-title {
+    cursor: pointer;
     position: absolute;
     left: 50%;
     transform: translateX(-50%) translateY(-10px);
@@ -601,7 +602,7 @@ main {
 
 @media (max-width: 590px) {
     .sticky-title.hide {
-        display: none;
+        display: none !important;
     }
 }
 
