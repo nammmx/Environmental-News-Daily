@@ -62,7 +62,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Fetch and display articles with smooth transition
     function fetchArticles(page = 1) {
         const keyword = keywordInput.value.trim();
-    
+        
         // Fetch params with selected filters and current page
         const params = new URLSearchParams({
             topic: selectedTopic,
@@ -75,6 +75,7 @@ document.addEventListener('DOMContentLoaded', function() {
             showLoadingScreen();
         } else {
             articlesContainer.classList.add('hide');
+            document.getElementById('pagination-wrapper').classList.add('pagination-hide');
         }
     
         // Fetch articles without relying on `cachedArticles` for filtered results
@@ -91,8 +92,9 @@ document.addEventListener('DOMContentLoaded', function() {
                         isInitialLoad = false;
                     } else {
                         articlesContainer.classList.remove('hide');
+                        document.getElementById('pagination-wrapper').classList.remove('pagination-hide');
                     }
-                }, isInitialLoad ? 0 : 650);
+                }, isInitialLoad ? 0 : 650); // Match the CSS transition time
             });
     }
 
@@ -165,17 +167,45 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Pagination
     function updatePagination(current, total) {
+        const maxVisiblePages = 5;
+        const halfVisible = Math.floor(maxVisiblePages / 2);
+    
+        let startPage = Math.max(1, current - halfVisible);
+        let endPage = Math.min(total, current + halfVisible);
+    
+        if (current <= halfVisible) {
+            endPage = Math.min(total, maxVisiblePages);
+        } else if (current + halfVisible >= total) {
+            startPage = Math.max(1, total - maxVisiblePages + 1);
+        }
+    
+        let pageNumbersHtml = '';
+        for (let i = startPage; i <= endPage; i++) {
+            if (i === current) {
+                pageNumbersHtml += `<span class="pagination-number active">${i}</span>`;
+            } else {
+                pageNumbersHtml += `<span class="pagination-number">${i}</span>`;
+            }
+        }
+    
+        document.getElementById('page-numbers').innerHTML = pageNumbersHtml;
+    
         prevPageBtn.disabled = current <= 1;
         nextPageBtn.disabled = current >= total;
-
+    
+        document.querySelectorAll('.pagination-number').forEach(pageNumber => {
+            pageNumber.addEventListener('click', (event) => {
+                const selectedPage = parseInt(event.target.textContent);
+                fetchArticles(selectedPage);
+            });
+        });
+    
         prevPageBtn.onclick = () => {
-            if (current > 1) fetchArticles(--current);
+            if (current > 1) fetchArticles(current - 1);
         };
         nextPageBtn.onclick = () => {
-            if (current < total) fetchArticles(++current);
+            if (current < total) fetchArticles(current + 1);
         };
-
-        pageNumbersContainer.innerHTML = `${current} of ${total}`;
     }
 
     // Function to select the clicked topic and keep its style
