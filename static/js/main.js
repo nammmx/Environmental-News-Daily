@@ -26,6 +26,16 @@ document.addEventListener('DOMContentLoaded', function() {
     const topicItems = document.querySelectorAll('.side-menu .topic-item');
     const sourceItems = document.querySelectorAll('.side-menu .source-item');
 
+    // Event listener for "Enter" key press on the keyword input
+    keywordInput.addEventListener('keypress', function(event) {
+        if (event.key === 'Enter') {
+            event.preventDefault();  // Prevent any form submission behavior
+
+            // Close the mobile keyboard by blurring the input
+            keywordInput.blur();
+        }
+    });
+
     // Source image mapping with URLs
     const sourceImageMapping = {
         "BBC News": { image: "bbc.png", url: "https://www.bbc.com/news/science_and_environment" },
@@ -62,7 +72,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Fetch and display articles with smooth transition
     function fetchArticles(page = 1) {
         const keyword = keywordInput.value.trim();
-    
+        
         // Fetch params with selected filters and current page
         const params = new URLSearchParams({
             topic: selectedTopic,
@@ -75,6 +85,7 @@ document.addEventListener('DOMContentLoaded', function() {
             showLoadingScreen();
         } else {
             articlesContainer.classList.add('hide');
+            document.getElementById('pagination-wrapper').classList.add('pagination-hide');
         }
     
         // Fetch articles without relying on `cachedArticles` for filtered results
@@ -85,14 +96,16 @@ document.addEventListener('DOMContentLoaded', function() {
                     renderArticles(data.articles);
                     updatePagination(data.current_page, data.total_pages);
                     window.scrollTo(0, 0);
+                    document.querySelector('.sticky-title').classList.remove('hide');
     
                     if (isInitialLoad) {
                         hideLoadingScreen();
                         isInitialLoad = false;
                     } else {
                         articlesContainer.classList.remove('hide');
+                        document.getElementById('pagination-wrapper').classList.remove('pagination-hide');
                     }
-                }, isInitialLoad ? 0 : 650);
+                }, isInitialLoad ? 0 : 650); // Match the CSS transition time
             });
     }
 
@@ -165,46 +178,78 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Pagination
     function updatePagination(current, total) {
+        const maxVisiblePages = 5;
+        const halfVisible = Math.floor(maxVisiblePages / 2);
+    
+        let startPage = Math.max(1, current - halfVisible);
+        let endPage = Math.min(total, current + halfVisible);
+    
+        if (current <= halfVisible) {
+            endPage = Math.min(total, maxVisiblePages);
+        } else if (current + halfVisible >= total) {
+            startPage = Math.max(1, total - maxVisiblePages + 1);
+        }
+    
+        let pageNumbersHtml = '';
+        for (let i = startPage; i <= endPage; i++) {
+            if (i === current) {
+                pageNumbersHtml += `<span class="pagination-number active">${i}</span>`;
+            } else {
+                pageNumbersHtml += `<span class="pagination-number">${i}</span>`;
+            }
+        }
+    
+        document.getElementById('page-numbers').innerHTML = pageNumbersHtml;
+    
         prevPageBtn.disabled = current <= 1;
         nextPageBtn.disabled = current >= total;
-
+    
+        document.querySelectorAll('.pagination-number').forEach(pageNumber => {
+            pageNumber.addEventListener('click', (event) => {
+                const selectedPage = parseInt(event.target.textContent);
+                fetchArticles(selectedPage);
+            });
+        });
+    
         prevPageBtn.onclick = () => {
-            if (current > 1) fetchArticles(--current);
+            if (current > 1) fetchArticles(current - 1);
         };
         nextPageBtn.onclick = () => {
-            if (current < total) fetchArticles(++current);
+            if (current < total) fetchArticles(current + 1);
         };
-
-        pageNumbersContainer.innerHTML = `${current} of ${total}`;
     }
 
-    // Function to select the clicked topic and keep its style
     function selectTopic(item) {
         selectedTopic = item.getAttribute('data-topic');
-
+    
         // Remove selected class from all topics
         topicItems.forEach(topic => topic.classList.remove('selected-topic'));
-
+    
         // Add selected class to the clicked topic
         item.classList.add('selected-topic');
-
+    
         // Store the selected topic in localStorage
         localStorage.setItem('selectedTopic', selectedTopic);
+    
+        // Hide sticky title on screens smaller than or equal to 768px
+        if (window.innerWidth <= 768) {
+            document.querySelector('.sticky-title').classList.add('hide');
+        }
     }
 
     // Event listeners for sidebar topics
     topicItems.forEach(item => {
         item.addEventListener('click', function() {
             selectTopic(this);
-
+    
             // Fetch articles for the selected topic
             fetchArticles(1);
-
+            stickyBar.classList.remove('menu-open'); // Add this line
             // Close the menu after selecting a topic
             sideMenu.classList.remove('open');
             contentWrapper.classList.remove('menu-open');
             isMenuOpen = false;
-
+    
             // Reset hamburger menu bars color to black and reverse animation
             hamburgerMenu.classList.remove('active');
         });
@@ -291,16 +336,17 @@ document.addEventListener('DOMContentLoaded', function() {
             sideMenu.classList.add('open');
             contentWrapper.classList.add('menu-open');
             hamburgerMenu.classList.add('active');
-            
-            // Only add 'menu-open' to sticky bar if it's scrolled past the header
+    
+            // Add 'menu-open' to sticky bar if scrolled
             if (stickyBar.classList.contains('scrolled')) {
                 stickyBar.classList.add('menu-open');
             }
         } else {
+            // Remove 'menu-open' from sticky-bar immediately on close
+            stickyBar.classList.remove('menu-open');
             sideMenu.classList.remove('open');
             contentWrapper.classList.remove('menu-open');
             hamburgerMenu.classList.remove('active');
-            stickyBar.classList.remove('menu-open');
         }
         applySelectedTopicStyle();
         applySelectedSourceStyle();
@@ -370,15 +416,28 @@ document.addEventListener('DOMContentLoaded', function() {
         document.querySelector('.sticky-title').classList.remove('hide');
     });
 
-    document.getElementById('home-button').addEventListener('click', function() {
+    // Add event listeners for both home button and sticky title
+    document.getElementById('home-button').addEventListener('click', resetFilters);
+    document.querySelector('.logo').addEventListener('click', resetFilters);
+
+    // Function to reset filters and scroll to top
+    function resetFilters() {
         // Reset selected topic and source to 'all'
         selectedTopic = 'all';
         selectedSource = 'all';
         keywordInput.value = '';  // Clear keyword search
-        
+    
+        // Clear stored topic and source in localStorage
+        localStorage.removeItem('selectedTopic');
+        localStorage.removeItem('selectedSource');
+    
         // Remove selected class from all topics and sources
         topicItems.forEach(topic => topic.classList.remove('selected-topic'));
         sourceItems.forEach(source => source.classList.remove('selected-source'));
+    
+        // Mark "All" for topics and sources
+        document.querySelector('.topic-item[data-topic="all"]').classList.add('selected-topic');
+        document.querySelector('.source-item[data-source="all"]').classList.add('selected-source');
     
         // Reset pagination and fetch articles
         currentPage = 1;
@@ -386,5 +445,5 @@ document.addEventListener('DOMContentLoaded', function() {
     
         // Scroll to top
         window.scrollTo({ top: 0, behavior: 'smooth' });
-    });
+    }
 });

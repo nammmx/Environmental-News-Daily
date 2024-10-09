@@ -87,7 +87,7 @@ body {
     font-size: 1.5rem;
     color: #333;
     opacity: 0;
-    transition: opacity 0.65s ease, transform 0.65s ease; /* Only applies when it appears */
+    /* transition: opacity 0.65s ease, transform 0.65s ease !important; */
 }
 
 /* Show the title when the sticky bar has the 'scrolled' class */
@@ -96,12 +96,24 @@ body {
     letter-spacing: 1.75px;
     opacity: 1;
     transform: translateX(-50%) translateY(0);
+    transition: opacity 0.65s ease, transform 0.65s ease !important;
+}
+
+.sticky-bar.hide-title .sticky-title {
+    opacity: 0;
+    transition: opacity 0.1s ease, transform 0.1s ease; /* Instant disappearance */
 }
 
 .sticky-bar:not(.scrolled) .sticky-title {
     opacity: 0;
     transform: translateX(-50%) translateY(-10px);
     transition: none; /* Instantly disappear without transition */
+}
+
+/* Adjust sticky title behavior when menu closes */
+.sticky-bar:not(.menu-open) .sticky-title {
+    transform: translateX(-50%) translateY(0);
+    transition: transform 0.65s ease;
 }
 
 .sticky-bar.menu-open .sticky-title {
@@ -184,7 +196,7 @@ header {
     top: 0;           /* Start from the top */
     left: -300px;     /* Hidden by default */
     width: 300px;
-    height: 100vh;    /* Full screen height */
+    height: 100%;
     background-color: #333;
     color: white;
     z-index: 1200;    /* Make sure it's on top of other elements */
@@ -248,7 +260,7 @@ header {
 }
 
 #content-wrapper.menu-open {
-    padding-left: 300px;
+    transform: translateX(225px);
 }
 
 /* Search Bar */
@@ -328,7 +340,7 @@ header {
 }
 
 #content-wrapper {
-    transition: padding-left 0.65s ease; /* Smooth transition for padding-left */
+    transition: transform 0.65s ease; /* Smooth transition for padding-left */
     padding-top: 100px;
 }
 
@@ -339,6 +351,7 @@ header {
     font-size: 8rem;
     margin: 0;
     padding-bottom: 15px;
+    cursor: pointer;
 }
 
 /* Main content */
@@ -520,41 +533,95 @@ main {
     color: white;
 }
 
-/* Pagination */
-#pagination {
-    margin: 60px 0;
+#pagination-wrapper {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0 20px;
+    justify-content: center;
     width: 100%;
+    margin: 40px 0 50px 0;
+    transition: opacity 0.45s ease;
 }
 
+/* Pagination */
+#pagination {
+    margin: 40px 0 50px 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.pagination-hide {
+    opacity: 0;
+}
+
+.pagination-show {
+    opacity: 1;
+}
+
+/* Pagination Container */
+.pagination-container {
+    display: inline-flex;
+    align-items: center;
+    /* border: 1px solid #ccc; */
+    /* border-radius: 25px; */
+    background-color: #333;
+    padding: 0;
+    gap: 0;
+    margin: 0 auto;
+    width: auto;
+}
+
+/* Page Number Style */
+.pagination-number {
+    padding: 10px 15px;
+    cursor: pointer;
+    color: white;
+    font-weight: bold;
+    transition: background-color 0.3s ease;
+}
+
+.pagination-number:hover {
+    background-color: #E5E4E4;
+    color: #333;
+}
+
+/* Active Page Style */
+.pagination-number.active {
+    background-color: #ef3b2b;
+    color: white;
+}
+
+/* Pagination Button Styles */
 .pagination-btn {
     color: #ef3b2b;
-    border: none;
+    font-size: 1.4rem;
+    font-weight: 300;
     cursor: pointer;
-    font-family: 'Heebo', sans-serif;
-    font-size: 1.1rem;
-    background-color: #E5E4E4;
-    text-decoration: underline;
-    flex: 1;
-    text-align: center;
+    background: none;
+    border: none;
+    padding: 9px 12px 8px 12px;
+    transition: background-color 0.3s ease;
+}
+
+.pagination-btn:disabled {
+    color: #E5E4E4;
+    cursor: not-allowed;
+}
+
+.pagination-btn:hover:not(:disabled) {
+    background-color: #ddd;
 }
 
 #page-numbers {
-    font-size: 0.8rem;
-    flex: 0.5;
-    text-align: center;
+    display: flex;
+    gap: 0;
 }
 
-#prev-page {
-    text-align: left;
+@media (max-width: 450px) {
+    #content-wrapper.menu-open {
+        transform: translateX(305px);
+    }
 }
 
-#next-page {
-    text-align: right;
-}
 
 @media (max-width: 1000px) {
     .logo {
@@ -598,22 +665,36 @@ main {
     .search-container {
         right: 15px
     }
+
+    .pagination-number {
+        padding: 15px 20px;
+        font-size: 1rem;
+    }
+
+    .sticky-bar.scrolled.menu-open .sticky-title {
+        transform: translateX(calc(75% + 125px)) translateY(0);
+    }
 }
 
 @media (max-width: 590px) {
     .sticky-title.hide {
-        display: none !important;
+        /* display: none !important; */
+        opacity: 0 !important;
+    }
+
+    #pagination-wrapper {
+        margin: 40px 0 15px 0;
     }
 }
 
 @media (max-width: 450px) {
     .logo {
         font-size: 3rem;
-        padding-bottom: 0;
+        padding: 0 10px 0 10px;
     }
 
     header {
-        margin: -40px 0 35px 0;
+        margin: -40px 0 45px 0;
     }
 
     .article-grid {

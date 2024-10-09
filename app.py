@@ -13,16 +13,11 @@ cache = Cache(config={'CACHE_TYPE': 'SimpleCache', 'CACHE_DEFAULT_TIMEOUT': 1800
 cache.init_app(app)
 
 # Database connection setup
-# load_dotenv()
+load_dotenv()
 
 db_url = (
     f"redshift+psycopg2://{os.getenv('REDSHIFT_USER')}:{os.getenv('REDSHIFT_PASSWORD')}"
     f"@{os.getenv('REDSHIFT_HOST')}:{os.getenv('REDSHIFT_PORT')}/{os.getenv('REDSHIFT_DBNAME')}"
-)
-
-db_url = (
-    f"redshift+psycopg2://admin:TruongnamHungiang1997."
-    f"@state-of-the-earth.009694569518.eu-north-1.redshift-serverless.amazonaws.com:5439/state_of_the_earth"
 )
 
 engine = create_engine(db_url)
