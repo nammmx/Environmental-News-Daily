@@ -13,6 +13,51 @@ body {
     overflow-x: hidden;
 }
 
+.loading-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: #E5E4E4;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    opacity: 1;
+    transition: opacity 0.9s ease;
+  }
+  
+  .loading-screen.fade-out {
+    opacity: 0;
+  }
+  
+  .loading-content {
+    text-align: center;
+  }
+  
+  .loading-content h2 {
+    font-family: "Gravitas One", serif;
+    font-size: 2rem;
+    color: #333;
+    margin-bottom: 20px;
+  }
+  
+  .spinner {
+    width: 50px;
+    height: 50px;
+    border: 5px solid #ef3b2b;
+    border-top: 5px solid #333;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 0 auto;
+  }
+  
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+
 /* Sticky Bar for Hamburger Menu, Search, and Side Menu */
 .sticky-bar {
     position: fixed;

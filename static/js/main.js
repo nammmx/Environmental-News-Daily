@@ -3,6 +3,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const articlesPerPage = 21;
     let searchBarOpen = false; // Track the state of the search bar
     let isMenuOpen = false; // Track if side menu is open
+    let isInitialLoad = true;
+    let cachedArticles = null;
 
     // DOM elements
     const keywordInput = document.getElementById('keyword-input');
@@ -42,6 +44,21 @@ document.addEventListener('DOMContentLoaded', function() {
         return new Date(dateString).toLocaleDateString(undefined, options);
     }
 
+    // New function to show loading screen
+    function showLoadingScreen() {
+        document.getElementById('loading-screen').style.display = 'flex';
+    }
+
+    // New function to hide loading screen
+    function hideLoadingScreen() {
+        const loadingScreen = document.getElementById('loading-screen');
+        loadingScreen.classList.add('fade-out');
+        setTimeout(() => {
+            loadingScreen.style.display = 'none';
+            loadingScreen.classList.remove('fade-out');
+        }, 900); // Match the CSS transition time
+    }
+
     // Fetch and display articles with smooth transition
     function fetchArticles(page = 1) {
         const keyword = keywordInput.value.trim();
@@ -53,21 +70,34 @@ document.addEventListener('DOMContentLoaded', function() {
             page: page
         });
 
-        // Fade out current articles before loading new ones
-        articlesContainer.classList.add('hide');
+        if (isInitialLoad) {
+            showLoadingScreen();
+        } else {
+            articlesContainer.classList.add('hide');
+        }
 
-        setTimeout(() => {
-            fetch(`/get_articles?${params.toString()}`)
-                .then(response => response.json())
-                .then(data => {
-                    renderArticles(data.articles);
-                    updatePagination(data.current_page, data.total_pages);
-                    window.scrollTo(0, 0);  // Scroll to top
+        const fetchPromise = isInitialLoad || !cachedArticles
+            ? fetch(`/get_articles?${params.toString()}`).then(response => response.json())
+            : Promise.resolve(cachedArticles);
 
-                    // Fade in new articles
+        fetchPromise.then(data => {
+            if (isInitialLoad || !cachedArticles) {
+                cachedArticles = data;
+            }
+
+            setTimeout(() => {
+                renderArticles(data.articles);
+                updatePagination(data.current_page, data.total_pages);
+                window.scrollTo(0, 0);
+
+                if (isInitialLoad) {
+                    hideLoadingScreen();
+                    isInitialLoad = false;
+                } else {
                     articlesContainer.classList.remove('hide');
-                });
-        }, 650); // Wait for the fade-out transition to finish (same as the 0.65s transition time)
+                }
+            }, isInitialLoad ? 0 : 650);
+        });
     }
 
     // Render articles
@@ -84,47 +114,47 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-// Create an article element with image, date, title, and clickable source image
-function createArticleElement(article) {
-    const articleDiv = document.createElement('div');
-    articleDiv.className = 'article';
+    // Create an article element with image, date, title, and clickable source image
+    function createArticleElement(article) {
+        const articleDiv = document.createElement('div');
+        articleDiv.className = 'article';
 
-    const source = sourceImageMapping[article.source];
-    articleDiv.innerHTML = `
-        <div class="article-content">
-            <div class="article-image">
-                <img src="${article.image}" alt="${article.title}">
+        const source = sourceImageMapping[article.source];
+        articleDiv.innerHTML = `
+            <div class="article-content">
+                <div class="article-image">
+                    <img src="${article.image}" alt="${article.title}">
+                </div>
+                <p class="article-date">${formatDate(article.publish_date)}</p>
+                <h2 class="article-title">${article.title}</h2>
+                <a href="${source.url}" target="_blank" class="source-link">
+                    <img src="/static/images/${source.image}" alt="${article.source}" class="article-source-image">
+                </a>
             </div>
-            <p class="article-date">${formatDate(article.publish_date)}</p>
-            <h2 class="article-title">${article.title}</h2>
-            <a href="${source.url}" target="_blank" class="source-link">
-                <img src="/static/images/${source.image}" alt="${article.source}" class="article-source-image">
-            </a>
-        </div>
-        <div class="article-summary">
-            <button class="close-summary">&times;</button>
-            <h3 class="summary-caption">Summary</h3>
-            <div class="summary-text">${article.summary}</div>
-            <div class="summary-buttons">
-                <button class="btn-read-whole" onclick="window.open('${article.link}', '_blank')">Read Whole Article</button>
+            <div class="article-summary">
+                <button class="close-summary">&times;</button>
+                <h3 class="summary-caption">Summary</h3>
+                <div class="summary-text">${article.summary}</div>
+                <div class="summary-buttons">
+                    <button class="btn-read-whole" onclick="window.open('${article.link}', '_blank')">Read Whole Article</button>
+                </div>
             </div>
-        </div>
-    `;
+        `;
 
-    // Make the entire article clickable except for the source image
-    articleDiv.addEventListener('click', toggleSummary);
+        // Make the entire article clickable except for the source image
+        articleDiv.addEventListener('click', toggleSummary);
 
-    // Prevent summary toggle when clicking the source image link
-    const sourceLink = articleDiv.querySelector('.source-link');
-    sourceLink.addEventListener('click', (event) => {
-        event.stopPropagation();
-    });
+        // Prevent summary toggle when clicking the source image link
+        const sourceLink = articleDiv.querySelector('.source-link');
+        sourceLink.addEventListener('click', (event) => {
+            event.stopPropagation();
+        });
 
-    // Add event listener to the close button
-    const closeButton = articleDiv.querySelector('.close-summary');
-    closeButton.addEventListener('click', toggleSummary);
-    return articleDiv;
-}
+        // Add event listener to the close button
+        const closeButton = articleDiv.querySelector('.close-summary');
+        closeButton.addEventListener('click', toggleSummary);
+        return articleDiv;
+    }
 
     // Toggle summary visibility
     function toggleSummary(event) {
@@ -318,7 +348,6 @@ function createArticleElement(article) {
     
     toggleStickyBarBorder();
     window.addEventListener('scroll', toggleStickyBarBorder);
-
 
     // Toggle search bar visibility
     searchIcon.addEventListener('click', function() {
