@@ -172,6 +172,35 @@ header {
     left: 0;
 }
 
+.menu-sources {
+    margin-top: 65px 
+}
+
+.source-item {
+    background-color: transparent;
+    color: white;
+    font-family: 'Heebo', sans-serif;
+    font-size: 0.8rem;
+    cursor: pointer;
+    padding: 16px 14px;
+    transition: background-color 0.3s ease;
+    letter-spacing: 1.1px;
+    border: 0;
+    margin: 0;
+}
+
+.source-item:hover {
+    color: #ef3b2b;
+}
+
+.selected-source, .source-item.active {
+    color: #ef3b2b !important;
+}
+
+.selected-source:hover, .source-item.active:hover {
+    color: #ef3b2b !important;
+}
+
 #content-wrapper.menu-open {
     padding-left: 300px;
 }

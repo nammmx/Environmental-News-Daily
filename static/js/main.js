@@ -20,18 +20,20 @@ document.addEventListener('DOMContentLoaded', function() {
     const header = document.querySelector('header');
     let lastScrollY = window.scrollY;
     let selectedTopic = 'all'; // Initialize with default topic
+    let selectedSource = 'all'; // Initialize with default source
     const topicItems = document.querySelectorAll('.side-menu .topic-item');
+    const sourceItems = document.querySelectorAll('.side-menu .source-item');
 
-    // Source image mapping
+    // Source image mapping with URLs
     const sourceImageMapping = {
-        "BBC News": "bbc.png",
-        "Columbia Climate School": "columbia.png",
-        "Earth911": "earth911.png",
-        "Greenpeace": "greenpeace.png",
-        "Grist": "grist.png",
-        "The Guardian": "guardian.png",
-        "The Independent": "independent.png",
-        "Yale Environment 360": "yale.png"
+        "BBC News": { image: "bbc.png", url: "https://www.bbc.com/news/science_and_environment" },
+        "Columbia Climate School": { image: "columbia.png", url: "https://news.climate.columbia.edu/" },
+        "Earth911": { image: "earth911.png", url: "https://earth911.com/" },
+        "Greenpeace": { image: "greenpeace.png", url: "https://www.greenpeace.org/canada/en/" },
+        "Grist": { image: "grist.png", url: "https://grist.org/" },
+        "The Guardian": { image: "guardian.png", url: "https://www.theguardian.com/us/environment" },
+        "The Independent": { image: "independent.png", url: "https://www.independent.co.uk/climate-change/news" },
+        "Yale Environment 360": { image: "yale.png", url: "https://e360.yale.edu/" }
     };
 
     // Helper function to format dates
@@ -40,56 +42,13 @@ document.addEventListener('DOMContentLoaded', function() {
         return new Date(dateString).toLocaleDateString(undefined, options);
     }
 
-    // Track if search bar is open and screen size is below 590px
-    function toggleSoteVisibility() {
-        const stickyTitle = document.querySelector('.sticky-title');
-        if (window.innerWidth <= 590 && searchBarOpen) {
-            stickyTitle.classList.add('hide');
-        } else {
-            stickyTitle.classList.remove('hide');
-        }
-    }
-
-    // Toggle search bar visibility and handle sote visibility
-    searchIcon.addEventListener('click', function() {
-        if (!searchBarOpen) {
-            keywordInput.classList.add('visible'); // Show the search box
-            searchIcon.style.display = 'none';    // Hide the magnifying glass
-            clearIcon.classList.add('visible');   // Show the clear (X) icon
-            searchBarOpen = true;
-            keywordInput.focus(); // Focus on input when opened
-            toggleSoteVisibility(); // Hide sote if screen size is small
-        }
-    });
-
-    // Clear search and reset visibility when 'X' is clicked
-    clearIcon.addEventListener('click', function() {
-        keywordInput.value = '';                 // Clear input
-        keywordInput.classList.remove('visible'); // Hide the search box
-        clearIcon.classList.remove('visible');   // Hide the clear (X) icon
-        searchIcon.style.display = 'inline';     // Show the magnifying glass
-        searchBarOpen = false;
-        fetchArticles(); // Reset article list with no keyword
-        toggleSoteVisibility(); // Show sote if appropriate
-    });
-
-    // Adjust sote visibility on window resize
-    window.addEventListener('resize', toggleSoteVisibility);
-
-    // Submit search on Enter keypress
-    keywordInput.addEventListener('keypress', function(event) {
-        if (event.key === 'Enter') {
-            event.preventDefault();
-            fetchArticles(); // Apply keyword search
-        }
-    });
-
     // Fetch and display articles with smooth transition
     function fetchArticles(page = 1) {
         const keyword = keywordInput.value.trim();
 
         const params = new URLSearchParams({
             topic: selectedTopic,
+            source: selectedSource,
             keyword: keyword,
             page: page
         });
@@ -125,39 +84,47 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Create an article element with image, date, title, and source image
-    function createArticleElement(article) {
-        const articleDiv = document.createElement('div');
-        articleDiv.className = 'article';
+// Create an article element with image, date, title, and clickable source image
+function createArticleElement(article) {
+    const articleDiv = document.createElement('div');
+    articleDiv.className = 'article';
 
-        const sourceImage = sourceImageMapping[article.source];
-        articleDiv.innerHTML = `
-            <div class="article-content">
-                <div class="article-image">
-                    <img src="${article.image}" alt="${article.title}">
-                </div>
-                <p class="article-date">${formatDate(article.publish_date)}</p>
-                <h2 class="article-title">${article.title}</h2>
-                <img src="/static/images/${sourceImage}" alt="${article.source}" class="article-source-image">
+    const source = sourceImageMapping[article.source];
+    articleDiv.innerHTML = `
+        <div class="article-content">
+            <div class="article-image">
+                <img src="${article.image}" alt="${article.title}">
             </div>
-            <div class="article-summary">
-                <button class="close-summary">&times;</button>
-                <h3 class="summary-caption">Summary</h3>
-                <div class="summary-text">${article.summary}</div>
-                <div class="summary-buttons">
-                    <button class="btn-read-whole" onclick="window.open('${article.link}', '_blank')">Read Whole Article</button>
-                </div>
+            <p class="article-date">${formatDate(article.publish_date)}</p>
+            <h2 class="article-title">${article.title}</h2>
+            <a href="${source.url}" target="_blank" class="source-link">
+                <img src="/static/images/${source.image}" alt="${article.source}" class="article-source-image">
+            </a>
+        </div>
+        <div class="article-summary">
+            <button class="close-summary">&times;</button>
+            <h3 class="summary-caption">Summary</h3>
+            <div class="summary-text">${article.summary}</div>
+            <div class="summary-buttons">
+                <button class="btn-read-whole" onclick="window.open('${article.link}', '_blank')">Read Whole Article</button>
             </div>
-        `;
+        </div>
+    `;
 
-        // Make the entire article clickable
-        articleDiv.addEventListener('click', toggleSummary);
+    // Make the entire article clickable except for the source image
+    articleDiv.addEventListener('click', toggleSummary);
 
-        // Add event listener to the close button
-        const closeButton = articleDiv.querySelector('.close-summary');
-        closeButton.addEventListener('click', toggleSummary);
-        return articleDiv;
-    }
+    // Prevent summary toggle when clicking the source image link
+    const sourceLink = articleDiv.querySelector('.source-link');
+    sourceLink.addEventListener('click', (event) => {
+        event.stopPropagation();
+    });
+
+    // Add event listener to the close button
+    const closeButton = articleDiv.querySelector('.close-summary');
+    closeButton.addEventListener('click', toggleSummary);
+    return articleDiv;
+}
 
     // Toggle summary visibility
     function toggleSummary(event) {
@@ -217,6 +184,38 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
+    // Function to select the clicked source and keep its style
+    function selectSource(item) {
+        selectedSource = item.getAttribute('data-source');
+
+        // Remove selected class from all sources
+        sourceItems.forEach(source => source.classList.remove('selected-source'));
+
+        // Add selected class to the clicked source
+        item.classList.add('selected-source');
+
+        // Store the selected source in localStorage
+        localStorage.setItem('selectedSource', selectedSource);
+    }
+
+    // Event listeners for sidebar sources
+    sourceItems.forEach(item => {
+        item.addEventListener('click', function() {
+            selectSource(this);
+
+            // Fetch articles for the selected source
+            fetchArticles(1);
+
+            // Close the menu after selecting a source
+            sideMenu.classList.remove('open');
+            contentWrapper.classList.remove('menu-open');
+            isMenuOpen = false;
+
+            // Reset hamburger menu bars color to black and reverse animation
+            hamburgerMenu.classList.remove('active');
+        });
+    });
+
     // Function to apply the selected topic style
     function applySelectedTopicStyle() {
         const storedTopic = localStorage.getItem('selectedTopic');
@@ -232,8 +231,24 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // Apply the selected topic style on page load
+    // Function to apply the selected source style
+    function applySelectedSourceStyle() {
+        const storedSource = localStorage.getItem('selectedSource');
+        if (storedSource) {
+            selectedSource = storedSource;
+            sourceItems.forEach(item => {
+                if (item.getAttribute('data-source') === selectedSource) {
+                    item.classList.add('selected-source');
+                } else {
+                    item.classList.remove('selected-source');
+                }
+            });
+        }
+    }
+
+    // Apply the selected topic and source style on page load
     applySelectedTopicStyle();
+    applySelectedSourceStyle();
 
     // Event listeners for keyword search
     keywordInput.addEventListener('input', () => fetchArticles(1));
@@ -262,6 +277,7 @@ document.addEventListener('DOMContentLoaded', function() {
             stickyBar.classList.remove('menu-open');
         }
         applySelectedTopicStyle();
+        applySelectedSourceStyle();
     });
 
     // Close menu when clicking outside the menu

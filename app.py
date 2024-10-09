@@ -13,7 +13,7 @@ cache = Cache(config={'CACHE_TYPE': 'SimpleCache', 'CACHE_DEFAULT_TIMEOUT': 1800
 cache.init_app(app)
 
 # Database connection setup
-#load_dotenv()
+# load_dotenv()
 
 db_url = (
     f"redshift+psycopg2://{os.getenv('REDSHIFT_USER')}:{os.getenv('REDSHIFT_PASSWORD')}"
@@ -60,12 +60,19 @@ def index():
         "Water & Oceans", "Wildlife & Conservation"
     ]
     
-    return render_template('index.html', topics=topics)
+    # Sources for filtering
+    sources = [
+        "BBC News", "Columbia Climate School", "Earth911", "Greenpeace", 
+        "Grist", "The Guardian", "The Independent", "Yale Environment 360"
+    ]
+    
+    return render_template('index.html', topics=topics, sources=sources)
 
 @app.route('/get_articles')
 def get_articles():
     data_in_memory = load_data()  # Use cached data
     selected_topic = request.args.get('topic')
+    selected_source = request.args.get('source')
     keyword = request.args.get('keyword', '')
     page = int(request.args.get('page', 1))
     articles_per_page = 21
@@ -80,6 +87,10 @@ def get_articles():
             (filtered_data['topic1'].str.lower() == selected_topic.lower()) | 
             (filtered_data['topic2'].str.lower() == selected_topic.lower())
         ]
+
+    # Filter by source if not "all"
+    if selected_source and selected_source != 'all':
+        filtered_data = filtered_data[filtered_data['source'].str.lower() == selected_source.lower()]
 
     # Filter by keyword if provided
     if keyword:
