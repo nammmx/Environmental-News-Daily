@@ -6,3 +6,4 @@ Dockerfile
 *.pem
 .env
 *.key
+venv

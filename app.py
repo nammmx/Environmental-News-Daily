@@ -1,40 +1,37 @@
 from flask import Flask, render_template, request, jsonify
 import pandas as pd
-from sqlalchemy import create_engine, text
 from datetime import datetime
 from dotenv import load_dotenv
 import os
 from flask_caching import Cache
+import boto3
 
 app = Flask(__name__)
 
 # Configure caching
-cache = Cache(config={'CACHE_TYPE': 'SimpleCache', 'CACHE_DEFAULT_TIMEOUT': 1800})  # Cache timeout in seconds (10 mins)
+cache = Cache(config={'CACHE_TYPE': 'SimpleCache', 'CACHE_DEFAULT_TIMEOUT': 3600})  # Cache timeout in seconds (30 mins)
 cache.init_app(app)
 
-# Database connection setup
+# Load environment variables
 load_dotenv()
 
-db_url = (
-    f"redshift+psycopg2://{os.getenv('REDSHIFT_USER')}:{os.getenv('REDSHIFT_PASSWORD')}"
-    f"@{os.getenv('REDSHIFT_HOST')}:{os.getenv('REDSHIFT_PORT')}/{os.getenv('REDSHIFT_DBNAME')}"
-)
+# S3 configurations
+S3_BUCKET = 'state-of-the-earth'
+CSV_KEY = '4_final/final_data_for_flask.csv'
 
-engine = create_engine(db_url)
+# Initialize S3 client
+s3_client = boto3.client('s3')
 
-# Load the entire dataset into memory (cached)
-@cache.cached(timeout=1800, key_prefix='data_in_memory')  # Cache this function for 10 minutes
+# Load the entire dataset into memory (cached) from S3 CSV
+@cache.cached(timeout=3600, key_prefix='data_in_memory')  # Cache this function for 30 minutes
 def load_data():
-    query = """
-        SELECT publish_date, title, topic1, summary, link, image, topic2, source
-        FROM ingestion.news_articles
-        WHERE content != '' AND image != ''
-        ORDER BY publish_date DESC
-    """
-    with engine.connect() as connection:
-        result = connection.execute(text(query))
-        data_in_memory = pd.DataFrame(result.fetchall(), columns=result.keys())
-        data_in_memory['publish_date'] = pd.to_datetime(data_in_memory['publish_date'])  # Ensure date column is datetime
+    # Download the CSV file from S3
+    csv_obj = s3_client.get_object(Bucket=S3_BUCKET, Key=CSV_KEY)
+    data_in_memory = pd.read_csv(csv_obj['Body'])
+    
+    # Ensure the publish_date column is a datetime object
+    data_in_memory['publish_date'] = pd.to_datetime(data_in_memory['publish_date'])
+    
     return data_in_memory
 
 # Custom filter for date formatting
