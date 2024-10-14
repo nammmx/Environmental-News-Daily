@@ -6,3 +6,5 @@ Dockerfile
 *.pem
 .env
 *.key
+venv
+.DS_Store
