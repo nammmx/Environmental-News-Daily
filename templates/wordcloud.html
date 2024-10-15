@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Word Cloud</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Gravitas+One&family=Rozha+One&display=swap" rel="stylesheet">
+    <!-- Include D3 and d3-cloud libraries -->
+    <script src="https://d3js.org/d3.v6.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3-cloud/1.2.5/d3.layout.cloud.min.js"></script>
+</head>
+<body id="wordcloud-page">
+
+    <!-- Sticky Bar for Hamburger Menu, Search, and Side Menu -->
+    <div class="sticky-bar">
+        <h1 class="sticky-title" id="home-button">sote</h1>
+        <div class="hamburger-menu" id="hamburger-menu">
+            <span class="bar"></span>
+            <span class="bar"></span>
+            <span class="bar"></span>
+        </div>
+        <div class="search-container" id="search-container">
+            <i class="fa-solid fa-magnifying-glass" id="search-icon"></i>
+            <input type="text" id="keyword-input" class="search-box hidden" placeholder="Search...">
+            <i class="fa-solid fa-x hidden" id="clear-icon"></i>
+        </div>
+        <div id="side-menu" class="side-menu">
+            <h1><a href="{{ url_for('index') }}">News Articles</a></h1>
+        </div>
+    </div>
+
+    <div id="content-wrapper">
+        <main id="wordcloud-main">
+            <!-- Filter Section -->
+            <div class="filters">
+                <label for="source">Source:</label>
+                <select id="source">
+                    <option value="">All</option>
+                </select>
+                <label for="topic">Topic:</label>
+                <select id="topic">
+                    <option value="">All</option>
+                </select>
+            </div>
+
+            <div id="selected-word"></div>
+            
+            <!-- Word Cloud Container -->
+            <div id="wordcloud"></div>
+
+            <button id="apply-filters" style="margin-top: 20px;">Apply Filters and View Articles</button>
+        </main>
+    </div>
+
+    <!-- Link to JavaScript files -->
+    <script src="{{ url_for('static', filename='js/wordcloud.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+
+</body>
+</html>

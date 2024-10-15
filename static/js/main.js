@@ -24,6 +24,24 @@ document.addEventListener('DOMContentLoaded', function() {
     let selectedTopic = localStorage.getItem('selectedTopic') || 'all';
     let selectedSource = localStorage.getItem('selectedSource') || 'all';
 
+    const params = new URLSearchParams(window.location.search);
+    const topicParam = params.get('topic');
+    const sourceParam = params.get('source');
+    const keywordParam = params.get('keyword');
+
+    if (topicParam) {
+        selectedTopic = topicParam;
+    }
+    if (sourceParam) {
+        selectedSource = sourceParam;
+    }
+    if (keywordParam) {
+        keywordInput.value = keywordParam;
+        searchBarOpen = true;
+        keywordInput.classList.add('visible');
+        searchIcon.style.display = 'none';
+        clearIcon.classList.add('visible');
+    }
     // Source image mapping with URLs
     const sourceImageMapping = {
         "BBC News": { image: "bbc.png", url: "https://www.bbc.com/news/science_and_environment" },
@@ -40,6 +58,23 @@ document.addEventListener('DOMContentLoaded', function() {
     function formatDate(dateString) {
         const options = { year: 'numeric', month: 'long', day: 'numeric' };
         return new Date(dateString).toLocaleDateString(undefined, options);
+    }
+
+    // Add this function at the beginning of main.js to retrieve query parameters
+    function getQueryParameter(param) {
+        const urlParams = new URLSearchParams(window.location.search);
+        return urlParams.get(param);
+    }
+
+    // Check for 'keyword' query parameter on load
+    const keywordFromUrl = getQueryParameter('keyword');
+    if (keywordFromUrl) {
+        keywordInput.value = keywordFromUrl;  // Set the search input with the keyword from URL
+        searchBarOpen = true;  // Open the search bar
+        keywordInput.classList.add('visible'); // Show the search bar
+        searchIcon.style.display = 'none';     // Hide the search icon
+        clearIcon.classList.add('visible');    // Show the clear icon
+        fetchArticles(1); // Trigger search with the keyword
     }
 
     // Loading Screen Functions
