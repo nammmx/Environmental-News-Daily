@@ -227,6 +227,14 @@ header {
     margin-top: 65px;
 }
 
+.menu-topics {
+    margin-top: 65px;
+}
+
+.menu-dates {
+    margin-top: 65px;
+}
+
 .source-item,
 .topic-item {
     background-color: transparent;
@@ -307,6 +315,100 @@ header {
 .hidden {
     display: none;
 }
+
+.flatpickr-calendar {
+    font-family: 'Heebo', sans-serif !important;
+}
+
+#calendar-icon {
+    margin-bottom: 10px;
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding-left: 5px;
+}
+
+/* Change the background color of the selected date range */
+.flatpickr-day.startRange,
+.flatpickr-day.endRange {
+    background-color: #ef3b2b !important;
+    color: white !important; /* Optional: to make the text color white */
+    border-color: #ef3b2b !important;
+}
+
+/* Change the background color for a single selected date */
+.flatpickr-day.selected {
+    background-color: #ef3b2b !important;
+    color: white !important; /* Optional: to make the text color white */
+    border-color: #ef3b2b !important;
+}
+
+/* Remove blue hover effect between selected range dates */
+.flatpickr-day.inRange:hover,
+.flatpickr-day.nextMonthDay.inRange:hover {
+    background-color: #ef3b2b !important;
+    color: white !important;
+    border-color: #ef3b2b !important;
+}
+
+/* Ensure range start and end have no blue border on hover */
+.flatpickr-day.startRange:hover,
+.flatpickr-day.endRange:hover {
+    background-color: #ef3b2b !important;
+    color: white !important;
+    border-color: #ef3b2b !important;
+}
+
+/* Style the date input box */
+#date-range {
+    background-color: #333 !important;
+    color: white !important;
+    border: 0px solid #666;
+    padding: 20px 0px; /* Add padding for better readability */
+    width: 100%; /* Ensure it takes full width of the container */
+    box-sizing: border-box; /* Include padding in width calculation */
+    font-family: 'Heebo', sans-serif; /* Ensure font consistency */
+    font-size: 1rem;
+    border-bottom: 0.1px solid white;
+}
+
+/* Additional style to prevent the text from being cut off */
+#date-range::placeholder {
+    color: #999; /* Placeholder color */
+}
+
+/* Optional: increase the width of the input's parent container if it's too narrow */
+.date-container {
+    width: 100%; /* Adjust width as needed */
+    max-width: 250px; /* Set a max-width if needed */
+}
+
+.date-filter-container {
+    display: flex;
+    align-items: center;
+}
+
+#date-range {
+    display: block;
+    background-color: #333;
+    color: white;
+    padding: 20px 5px;
+    border-bottom: 0.1px solid white;
+    font-size: 1rem;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.clear-date-button {
+    position: absolute;
+    right: 20px;
+    font-size: 2rem;
+    color: white;
+    background: none;
+    border: none;
+    cursor: pointer;
+    display: none; /* Initially hidden */
+}
+
 
 /* Content Wrapper */
 #content-wrapper {

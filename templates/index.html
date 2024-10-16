@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Gravitas+One&family=Rozha+One&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 </head>
 <body>
 
@@ -38,7 +39,15 @@
         <!-- Sidebar Menu inside the Sticky Bar -->
         <div id="side-menu" class="side-menu">
             <h1><a href="{{ url_for('wordcloud') }}">Word Cloud</a></h1>
-            <h1>Topics</h1>
+            <h1 class="menu-dates">Dates</h1>
+            <div id="date-filter" class="date-filter">
+                <!-- <i class="fa-solid fa-calendar" id="calendar-icon"></i> -->
+            </div>
+            <div class="date-filter-container">
+                <input type="text" id="date-range" placeholder="Select Date Range" readonly style="display:none;">
+                <button id="clear-date-filter" class="clear-date-button" style="display: none;">&times;</button>
+            </div>
+            <h1 class="menu-topics">Topics</h1>
             <ul>
                 <li class="topic-item" data-topic="all">All</li>
                 {% for topic in topics %}
@@ -84,5 +93,6 @@
     </div>
 
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 </body>
 </html>

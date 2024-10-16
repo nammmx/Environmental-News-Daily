@@ -17,12 +17,18 @@ document.addEventListener('DOMContentLoaded', function() {
     const loadingScreen = document.getElementById('loading-screen');
     const stickyTitle = document.querySelector('.sticky-title');
     const homeButtons = [document.getElementById('home-button'), document.querySelector('.logo')];
+    const dateRangeInput = document.getElementById('date-range');
+    // const calendarIcon = document.getElementById('calendar-icon');
+    const clearDateFilterButton = document.getElementById('clear-date-filter');
     let lastScrollY = window.scrollY;
     let isMenuOpen = false;
     let isInitialLoad = true;
     let searchBarOpen = false;
     let selectedTopic = localStorage.getItem('selectedTopic') || 'all';
     let selectedSource = localStorage.getItem('selectedSource') || 'all';
+
+    // Ensure the date input is visible
+    dateRangeInput.style.display = 'block';
 
     const params = new URLSearchParams(window.location.search);
     const topicParam = params.get('topic');
@@ -60,6 +66,65 @@ document.addEventListener('DOMContentLoaded', function() {
         return new Date(dateString).toLocaleDateString(undefined, options);
     }
 
+    // Flatpickr initialization
+    flatpickr(dateRangeInput, {
+        mode: "range",
+        dateFormat: "Y-m-d", // Keep backend format as Y-m-d
+        onClose: function(selectedDates) {
+            const options = { month: 'short', day: 'numeric', year: 'numeric' };
+    
+            if (selectedDates.length === 2) {
+                // If a range is selected (two dates)
+                const formattedStartDate = selectedDates[0].toLocaleDateString(undefined, options);
+                const formattedEndDate = selectedDates[1].toLocaleDateString(undefined, options);
+                dateRangeInput.value = `${formattedStartDate} - ${formattedEndDate}`;
+    
+                // Set the start-date attribute as is, and add one day to end-date for inclusive range
+                dateRangeInput.setAttribute('data-start-date', selectedDates[0].toISOString().split('T')[0]);
+    
+                const inclusiveEndDate = new Date(selectedDates[1]);
+                inclusiveEndDate.setDate(inclusiveEndDate.getDate() + 1); // Add one day to include the end date
+                dateRangeInput.setAttribute('data-end-date', inclusiveEndDate.toISOString().split('T')[0]);
+    
+                clearDateFilterButton.style.display = 'inline'; // Show "X" button
+    
+            } else if (selectedDates.length === 1) {
+                // If only one date is selected, set both start and end dates to that date
+                const formattedDate = selectedDates[0].toLocaleDateString(undefined, options);
+                dateRangeInput.value = formattedDate;
+                dateRangeInput.setAttribute('data-start-date', selectedDates[0].toISOString().split('T')[0]);
+                dateRangeInput.setAttribute('data-end-date', selectedDates[0].toISOString().split('T')[0]);
+    
+                clearDateFilterButton.style.display = 'inline'; // Show "X" button
+            } else {
+                // If no dates are selected, clear attributes and hide "X" button
+                clearDateFilter();
+            }
+    
+            fetchArticles(1); // Refetch articles with the new date range
+            closeMenu(); // Close the menu after date selection
+        }
+    });
+
+    // Clear the date filter and hide the "X" button
+    function clearDateFilter() {
+        dateRangeInput.value = '';
+        dateRangeInput.removeAttribute('data-start-date');
+        dateRangeInput.removeAttribute('data-end-date');
+        clearDateFilterButton.style.display = 'none'; // Hide "X" button
+        fetchArticles(1); // Fetch articles without date filter
+        closeMenu(); // Close the menu after date selection
+    }
+
+    // Add event listener for the "X" button to clear the date filter
+    clearDateFilterButton.addEventListener('click', clearDateFilter);
+
+    // Show date picker when clicking the calendar icon
+    // calendarIcon.addEventListener('click', () => {
+    //     dateRangeInput.style.display = "block";
+    //     dateRangeInput._flatpickr.open(); // Open date picker
+    // });
+
     // Add this function at the beginning of main.js to retrieve query parameters
     function getQueryParameter(param) {
         const urlParams = new URLSearchParams(window.location.search);
@@ -93,20 +158,24 @@ document.addEventListener('DOMContentLoaded', function() {
     // Fetch and display articles
     function fetchArticles(page = 1) {
         const keyword = keywordInput.value.trim();
+        const startDate = dateRangeInput.getAttribute('data-start-date') || '';
+        const endDate = dateRangeInput.getAttribute('data-end-date') || '';
         const params = new URLSearchParams({
             topic: selectedTopic,
             source: selectedSource,
             keyword: keyword,
+            start_date: startDate,
+            end_date: endDate,
             page: page
         });
-
+    
         if (isInitialLoad) {
             showLoadingScreen();
         } else {
             articlesContainer.classList.add('hide');
             document.getElementById('pagination-wrapper').classList.add('pagination-hide');
         }
-
+    
         fetch(`/get_articles?${params.toString()}`)
             .then(response => response.json())
             .then(data => {
@@ -114,12 +183,11 @@ document.addEventListener('DOMContentLoaded', function() {
                     renderArticles(data.articles);
                     updatePagination(data.current_page, data.total_pages);
                     window.scrollTo(0, 0);
-
-                    // Only remove 'hide' class if searchBarOpen is false
+    
                     if (!searchBarOpen) {
                         stickyTitle.classList.remove('hide');
                     }
-
+    
                     if (isInitialLoad) {
                         hideLoadingScreen();
                         isInitialLoad = false;
@@ -364,6 +432,9 @@ document.addEventListener('DOMContentLoaded', function() {
         selectedTopic = 'all';
         selectedSource = 'all';
         keywordInput.value = '';
+        dateRangeInput.value = ''; // Clear the date range input
+        dateRangeInput.removeAttribute('data-start-date');
+        dateRangeInput.removeAttribute('data-end-date');
         localStorage.removeItem('selectedTopic');
         localStorage.removeItem('selectedSource');
         applySelectedStyles();

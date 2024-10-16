@@ -137,6 +137,8 @@ def get_articles():
     selected_topic = request.args.get('topic')
     selected_source = request.args.get('source')
     keyword = request.args.get('keyword', '')
+    start_date = request.args.get('start_date')  # Get start_date parameter
+    end_date = request.args.get('end_date')      # Get end_date parameter
     page = int(request.args.get('page', 1))
     articles_per_page = 21
 
@@ -161,6 +163,20 @@ def get_articles():
             filtered_data['title'].str.contains(keyword, case=False) |
             filtered_data['content'].str.contains(keyword, case=False)
         ]
+
+    # Filter by date range if provided
+    if start_date and end_date:
+        try:
+            # Convert string dates to datetime objects
+            start_date_dt = datetime.strptime(start_date, '%Y-%m-%d')
+            end_date_dt = datetime.strptime(end_date, '%Y-%m-%d')
+            # Filter based on publish_date within the range (inclusive)
+            filtered_data = filtered_data[
+                (filtered_data['publish_date'] >= start_date_dt) &
+                (filtered_data['publish_date'] <= end_date_dt)
+            ]
+        except ValueError:
+            return jsonify({"error": "Invalid date format. Use YYYY-MM-DD."}), 400
 
     # Calculate pagination
     total_articles = len(filtered_data)
