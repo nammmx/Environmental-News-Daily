@@ -7,9 +7,8 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Gravitas+One&family=Rozha+One&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <!-- Include D3 and d3-cloud libraries -->
-    <script src="https://d3js.org/d3.v6.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3-cloud/1.2.5/d3.layout.cloud.min.js"></script>
 </head>
 <body id="wordcloud-page">
 
@@ -35,14 +34,15 @@
         <main id="wordcloud-main">
             <!-- Filter Section -->
             <div class="filters">
-                <label for="source">Source:</label>
                 <select id="source">
-                    <option value="">All</option>
+                    <option value="">All Sources</option>
                 </select>
-                <label for="topic">Topic:</label>
                 <select id="topic">
-                    <option value="">All</option>
+                    <option value="">All Topics</option>
                 </select>
+                <!-- Date Range Input -->
+                <input type="text" id="date-range" placeholder="Select Date Range" readonly>
+                <button id="clear-date-filter" class="clear-date-button" style="display: none;">&times;</button>
             </div>
 
             <div id="selected-word"></div>
@@ -55,8 +55,11 @@
     </div>
 
     <!-- Link to JavaScript files -->
+    <script src="https://d3js.org/d3.v6.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3-cloud/1.2.5/d3.layout.cloud.min.js"></script>
     <script src="{{ url_for('static', filename='js/wordcloud.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="{{ url_for('static', filename='js/sticky-bar.js') }}"></script>
 
 </body>
 </html>

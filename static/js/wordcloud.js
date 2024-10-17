@@ -1,19 +1,79 @@
+// static/js/wordcloud.js
+
 document.addEventListener("DOMContentLoaded", function () {
     const sourceDropdown = document.getElementById("source");
     const topicDropdown = document.getElementById("topic");
     const applyFiltersButton = document.getElementById("apply-filters");
+    const dateRangeInput = document.getElementById("date-range");
+    const clearDateFilterButton = document.getElementById("clear-date-filter");
 
     let selectedWord = ""; // To store the clicked word
+
+    // Initialize flatpickr for date range input
+    flatpickr(dateRangeInput, {
+        mode: "range",
+        dateFormat: "Y-m-d", // Ensure date format matches backend requirements
+        onChange: function (selectedDates) {
+            const options = { month: 'short', day: 'numeric', year: 'numeric' };
+
+            if (selectedDates.length === 2) {
+                // Format dates as "Oct 13, 2024 - Oct 15, 2024"
+                const formattedStartDate = selectedDates[0].toLocaleDateString(undefined, options);
+                const formattedEndDate = selectedDates[1].toLocaleDateString(undefined, options);
+                dateRangeInput.value = `${formattedStartDate} - ${formattedEndDate}`;
+                clearDateFilterButton.style.display = "inline"; // Show the "X" button
+
+                // Make end date inclusive by not adding a day when selecting same start and end date
+                const endDate = new Date(selectedDates[1]);
+                if (selectedDates[0].getTime() !== selectedDates[1].getTime()) {
+                    endDate.setDate(endDate.getDate() + 1); // Add one day for inclusive range if range > 1 day
+                }
+
+                // Store dates in localStorage to persist the filter
+                localStorage.setItem('startDate', selectedDates[0].toISOString().split('T')[0]);
+                localStorage.setItem('endDate', endDate.toISOString().split('T')[0]); // Store inclusive end date
+
+                // Apply the date filter and redraw the word cloud
+                updateWordCloud();
+            } else {
+                // Reset input if only one date is selected
+                dateRangeInput.value = "";
+                clearDateFilterButton.style.display = "none"; // Hide the "X" button
+                localStorage.removeItem('startDate');
+                localStorage.removeItem('endDate');
+                updateWordCloud(); // Redraw with no date filter
+            }
+        }
+    });
 
     // Retrieve saved filters from localStorage (if they exist)
     const savedSource = localStorage.getItem('selectedSource') || "";
     const savedTopic = localStorage.getItem('selectedTopic') || "";
     const savedKeyword = localStorage.getItem('selectedKeyword') || "";
+    const savedStartDate = localStorage.getItem('startDate') || "";
+    const savedEndDate = localStorage.getItem('endDate') || "";
 
     // Set the dropdowns and selected word to the saved values
     sourceDropdown.value = savedSource;
     topicDropdown.value = savedTopic;
     selectedWord = savedKeyword; // Set initial selected word, if needed
+
+    // Set date range input to saved values if they exist
+    if (savedStartDate && savedEndDate) {
+        dateRangeInput.value = `${savedStartDate} to ${savedEndDate}`;
+        clearDateFilterButton.style.display = "inline"; // Show the "X" button if a date range is saved
+    } else {
+        clearDateFilterButton.style.display = "none"; // Hide the "X" button if no date range is saved
+    }
+
+    // Event listener for the "X" button to clear the date range
+    clearDateFilterButton.addEventListener("click", () => {
+        dateRangeInput.value = "";
+        localStorage.removeItem('startDate');
+        localStorage.removeItem('endDate');
+        clearDateFilterButton.style.display = "none"; // Hide the "X" button
+        updateWordCloud(); // Redraw word cloud with the cleared filter
+    });
 
     // Fetch filter options and populate dropdowns
     fetch("/filter-options")
@@ -48,27 +108,47 @@ document.addEventListener("DOMContentLoaded", function () {
     const arrow = selectedWordDisplay.querySelector("#arrow");
     const wordText = selectedWordDisplay.querySelector("#word-text");
 
-    function drawWordCloud() {
+    function updateWordCloud() {
         const source = sourceDropdown.value;
         const topic = topicDropdown.value;
-
+        const startDate = localStorage.getItem('startDate');
+        const endDate = localStorage.getItem('endDate');
+    
         const url = new URL(window.location.origin + "/data");
         if (source) url.searchParams.append("source", source);
         if (topic) url.searchParams.append("topic", topic);
-
+        if (startDate) url.searchParams.append("start_date", startDate);
+        if (endDate) url.searchParams.append("end_date", endDate);
+    
         fetch(url)
             .then(response => response.json())
             .then(wordData => {
-                // Ensure exactly 250 words, padding with placeholders if needed
-                while (wordData.length < 250) {
+                // Limit words to 150 on smaller screens (<=768px), otherwise 250 words
+                const maxWords = window.innerWidth <= 768 ? 150 : 250;
+    
+                // Ensure exactly the determined number of words, padding with placeholders if needed
+                while (wordData.length < maxWords) {
                     wordData.push({ text: `placeholder${wordData.length}`, size: 1 });
                 }
-                const displayedWords = wordData.slice(0, 250);
-
+                const displayedWords = wordData.slice(0, maxWords);
+    
                 const wordCloudContainer = document.getElementById("wordcloud");
                 const width = wordCloudContainer.offsetWidth;
                 const height = Math.min(wordCloudContainer.offsetHeight, window.innerHeight * 0.8);
-
+    
+                // Set up font size scale, increasing sizes for smaller screens
+                const maxFrequency = d3.max(displayedWords, d => d.size);
+    
+                const fontSizeScale = d3.scaleSqrt()
+                    .domain([1, maxFrequency])
+                    .range(window.innerWidth <= 768 
+                        ? [Math.max(4, width / 100), Math.min(height / 5, width / 8)] // Larger font size for smaller screens
+                        : [Math.max(2, width / 120), Math.min(height / 8, width / 15)]); // Regular font size for larger screens
+    
+                const colorScale = d3.scaleLinear()
+                    .domain([1, maxFrequency])
+                    .range(["#A9D8B8", "#005F00"]); // Light green to dark green
+    
                 // Apply fade-out effect to the container
                 d3.select(wordCloudContainer)
                     .transition()
@@ -78,17 +158,7 @@ document.addEventListener("DOMContentLoaded", function () {
                         // Clear any existing SVG to fully restart the layout
                         wordCloudContainer.innerHTML = "";
                         d3.select(wordCloudContainer).style("opacity", 1); // Reset opacity after clearing
-
-                        // Set up scales for font size and color based on word frequency
-                        const maxFrequency = d3.max(displayedWords, d => d.size);
-                        const fontSizeScale = d3.scaleSqrt()
-                            .domain([1, maxFrequency])
-                            .range([Math.max(2, width / 120), Math.min(height / 8, width / 15)]);
-
-                        const colorScale = d3.scaleLinear()
-                            .domain([1, maxFrequency])
-                            .range(["#A9D8B8", "#005F00"]); // Light green to dark green
-
+    
                         const layout = d3.layout.cloud()
                             .size([width, height])
                             .words(displayedWords.map(d => ({
@@ -102,20 +172,25 @@ document.addEventListener("DOMContentLoaded", function () {
                             .fontSize(d => d.size)
                             .spiral("archimedean") // Keep spiral setting as is
                             .on("end", draw);
-
+    
                         layout.start();
-
+    
                         function draw(words) {
                             const svg = d3.select("#wordcloud")
                                 .append("svg")
                                 .attr("width", width)
                                 .attr("height", height)
-                                .append("g")
+                                .style("margin", "0 auto")
+                                .attr("viewBox", `0 0 ${width} ${height}`)  // Ensure SVG scales
+                                .attr("preserveAspectRatio", "xMidYMid meet");  // Center alignment inside container
+    
+                            // Append a group and center it inside the SVG
+                            const g = svg.append("g")
                                 .attr("transform", `translate(${width / 2}, ${height / 2})`);
-                        
-                            const text = svg.selectAll("text")
+    
+                            const text = g.selectAll("text")
                                 .data(words, d => d.text);
-                        
+    
                             text.enter().append("text")
                                 .style("font-size", d => `${d.size}px`)
                                 .style("fill", d => colorScale(d.frequency))
@@ -124,32 +199,32 @@ document.addEventListener("DOMContentLoaded", function () {
                                 .style("opacity", 0)
                                 .style("cursor", "pointer")
                                 .text(d => d.text)
-                                .on("click", function(event, d) {
+                                .on("click", function (event, d) {
                                     selectedWord = d.text; // Save the clicked word
-
+    
                                     // Calculate the position of the clicked word
                                     const rect = this.getBoundingClientRect();
-
+    
                                     // Set initial position of `selectedWordDisplay` to the clicked word's position
                                     selectedWordDisplay.style.transition = "none"; // Disable transition for initial positioning
                                     selectedWordDisplay.style.left = `${rect.left + window.scrollX}px`;
                                     selectedWordDisplay.style.top = `${rect.top + window.scrollY}px`;
-
+    
                                     // Set the word content and make the display visible immediately
                                     wordText.textContent = selectedWord;
                                     selectedWordDisplay.style.opacity = "1";
-
+    
                                     // Transition the display to the final destination
                                     setTimeout(() => {
                                         selectedWordDisplay.style.transition = "left 1s, top 1s";
                                         selectedWordDisplay.style.left = "100px";
                                         selectedWordDisplay.style.top = "150px";
-
+    
                                         setTimeout(() => {
                                             arrow.style.opacity = "1"; // Show arrow after reaching the final position
                                         }, 1000);
                                     }, 50); // Short delay to ensure the initial position is rendered
-
+    
                                     // Hide the word cloud
                                     d3.select("#wordcloud")
                                         .transition()
@@ -157,13 +232,13 @@ document.addEventListener("DOMContentLoaded", function () {
                                         .style("opacity", 0)
                                         .style("pointer-events", "none");
                                 })
-                                .on("mouseover", function(event, d) {
+                                .on("mouseover", function (event, d) {
                                     d3.select(this)
                                         .transition()
                                         .duration(150)
                                         .attr("transform", `translate(${d.x}, ${d.y}) scale(1.1)`);
                                 })
-                                .on("mouseout", function(event, d) {
+                                .on("mouseout", function (event, d) {
                                     d3.select(this)
                                         .transition()
                                         .duration(150)
@@ -179,24 +254,39 @@ document.addEventListener("DOMContentLoaded", function () {
             .catch(error => console.error("Error loading word data:", error));
     }
 
-    drawWordCloud();
+    updateWordCloud();
+
+    // Event listeners for automatic word cloud generation based on filter changes
     sourceDropdown.addEventListener("change", () => {
+        localStorage.setItem('selectedSource', sourceDropdown.value);
         fadeOutSelectedWordAndShowWordCloud();
-        drawWordCloud();
-    });
-    topicDropdown.addEventListener("change", () => {
-        fadeOutSelectedWordAndShowWordCloud();
-        drawWordCloud();
+        updateWordCloud();
     });
 
+    topicDropdown.addEventListener("change", () => {
+        localStorage.setItem('selectedTopic', topicDropdown.value);
+        fadeOutSelectedWordAndShowWordCloud();
+        updateWordCloud();
+    });
+
+    dateRangeInput.addEventListener("change", () => {
+        fadeOutSelectedWordAndShowWordCloud();
+        updateWordCloud();
+    });
+
+    // Existing functionality for applyFiltersButton
     applyFiltersButton.addEventListener("click", () => {
         const selectedSource = sourceDropdown.value;
         const selectedTopic = topicDropdown.value;
-        
+        const dateRange = dateRangeInput.value;
+        const [startDate, endDate] = dateRange.split(" to ");
+
         // Save the selected filters to localStorage
         localStorage.setItem('selectedSource', selectedSource);
         localStorage.setItem('selectedTopic', selectedTopic);
         localStorage.setItem('selectedKeyword', selectedWord); // Store the selected word as a keyword, if needed
+        localStorage.setItem('startDate', startDate || "");
+        localStorage.setItem('endDate', endDate || "");
 
         // Build the URL with query parameters
         const url = new URL(window.location.origin + "/");

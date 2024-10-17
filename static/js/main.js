@@ -1,34 +1,59 @@
+// static/js/main.js
+
+// Define global variables
+window.searchBarOpen = false;
+
 document.addEventListener('DOMContentLoaded', function() {
     let currentPage = 1;
-    const searchIcon = document.getElementById('search-icon');
-    const clearIcon = document.getElementById('clear-icon');
     const keywordInput = document.getElementById('keyword-input');
     const articlesContainer = document.getElementById('articles-container');
     const prevPageBtn = document.getElementById('prev-page');
     const nextPageBtn = document.getElementById('next-page');
     const pageNumbersContainer = document.getElementById('page-numbers');
-    const hamburgerMenu = document.getElementById('hamburger-menu');
-    const sideMenu = document.getElementById('side-menu');
-    const contentWrapper = document.getElementById('content-wrapper');
-    const stickyBar = document.querySelector('.sticky-bar');
-    const header = document.querySelector('header');
-    const topicItems = document.querySelectorAll('.side-menu .topic-item');
-    const sourceItems = document.querySelectorAll('.side-menu .source-item');
+    const dateRangeInput = document.getElementById('date-range');
+    const clearDateFilterButton = document.getElementById('clear-date-filter');
     const loadingScreen = document.getElementById('loading-screen');
     const stickyTitle = document.querySelector('.sticky-title');
-    const homeButtons = [document.getElementById('home-button'), document.querySelector('.logo')];
-    const dateRangeInput = document.getElementById('date-range');
-    // const calendarIcon = document.getElementById('calendar-icon');
-    const clearDateFilterButton = document.getElementById('clear-date-filter');
-    let lastScrollY = window.scrollY;
-    let isMenuOpen = false;
+    const topicItems = document.querySelectorAll('.side-menu .topic-item');
+    const sourceItems = document.querySelectorAll('.side-menu .source-item');
+    const searchIcon = document.getElementById('search-icon');
+    const clearIcon = document.getElementById('clear-icon');
     let isInitialLoad = true;
-    let searchBarOpen = false;
     let selectedTopic = localStorage.getItem('selectedTopic') || 'all';
     let selectedSource = localStorage.getItem('selectedSource') || 'all';
 
+    // Define resetFilters as a global function
+    window.resetFilters = function resetFilters() {
+        selectedTopic = 'all';
+        selectedSource = 'all';
+        if (keywordInput) {
+            keywordInput.value = '';
+        }
+        if (dateRangeInput) {
+            dateRangeInput.value = '';
+            dateRangeInput.removeAttribute('data-start-date');
+            dateRangeInput.removeAttribute('data-end-date');
+        }
+        localStorage.removeItem('selectedTopic');
+        localStorage.removeItem('selectedSource');
+        applySelectedStyles();
+        currentPage = 1;
+        fetchArticles(currentPage);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+
+        // Reset the keyword search input to its original state
+        if (keywordInput) {
+            keywordInput.classList.remove('visible');
+        }
+        if (searchIcon) searchIcon.style.display = 'block';
+        if (clearIcon) clearIcon.classList.remove('visible');
+        window.searchBarOpen = false;
+    };
+
     // Ensure the date input is visible
-    dateRangeInput.style.display = 'block';
+    if (dateRangeInput) {
+        dateRangeInput.style.display = 'block';
+    }
 
     const params = new URLSearchParams(window.location.search);
     const topicParam = params.get('topic');
@@ -41,13 +66,14 @@ document.addEventListener('DOMContentLoaded', function() {
     if (sourceParam) {
         selectedSource = sourceParam;
     }
-    if (keywordParam) {
+    if (keywordParam && keywordInput) {
         keywordInput.value = keywordParam;
-        searchBarOpen = true;
+        window.searchBarOpen = true;  // Set searchBarOpen to true if keyword is present
         keywordInput.classList.add('visible');
-        searchIcon.style.display = 'none';
-        clearIcon.classList.add('visible');
+        if (searchIcon) searchIcon.style.display = 'none';
+        if (clearIcon) clearIcon.classList.add('visible');
     }
+
     // Source image mapping with URLs
     const sourceImageMapping = {
         "BBC News": { image: "bbc.png", url: "https://www.bbc.com/news/science_and_environment" },
@@ -67,99 +93,94 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Flatpickr initialization
-    flatpickr(dateRangeInput, {
-        mode: "range",
-        dateFormat: "Y-m-d", // Keep backend format as Y-m-d
-        onClose: function(selectedDates) {
-            const options = { month: 'short', day: 'numeric', year: 'numeric' };
-    
-            if (selectedDates.length === 2) {
-                // If a range is selected (two dates)
-                const formattedStartDate = selectedDates[0].toLocaleDateString(undefined, options);
-                const formattedEndDate = selectedDates[1].toLocaleDateString(undefined, options);
-                dateRangeInput.value = `${formattedStartDate} - ${formattedEndDate}`;
-    
-                // Set the start-date attribute as is, and add one day to end-date for inclusive range
-                dateRangeInput.setAttribute('data-start-date', selectedDates[0].toISOString().split('T')[0]);
-    
-                const inclusiveEndDate = new Date(selectedDates[1]);
-                inclusiveEndDate.setDate(inclusiveEndDate.getDate() + 1); // Add one day to include the end date
-                dateRangeInput.setAttribute('data-end-date', inclusiveEndDate.toISOString().split('T')[0]);
-    
-                clearDateFilterButton.style.display = 'inline'; // Show "X" button
-    
-            } else if (selectedDates.length === 1) {
-                // If only one date is selected, set both start and end dates to that date
-                const formattedDate = selectedDates[0].toLocaleDateString(undefined, options);
-                dateRangeInput.value = formattedDate;
-                dateRangeInput.setAttribute('data-start-date', selectedDates[0].toISOString().split('T')[0]);
-                dateRangeInput.setAttribute('data-end-date', selectedDates[0].toISOString().split('T')[0]);
-    
-                clearDateFilterButton.style.display = 'inline'; // Show "X" button
-            } else {
-                // If no dates are selected, clear attributes and hide "X" button
-                clearDateFilter();
+    if (dateRangeInput) {
+        flatpickr(dateRangeInput, {
+            mode: "range",
+            dateFormat: "Y-m-d", // Keep backend format as Y-m-d
+            onClose: function(selectedDates) {
+                const options = { month: 'short', day: 'numeric', year: 'numeric' };
+
+                if (selectedDates.length === 2) {
+                    // If a range is selected (two dates)
+                    const formattedStartDate = selectedDates[0].toLocaleDateString(undefined, options);
+                    const formattedEndDate = selectedDates[1].toLocaleDateString(undefined, options);
+                    dateRangeInput.value = `${formattedStartDate} - ${formattedEndDate}`;
+
+                    // Set the start-date attribute as is, and add one day to end-date for inclusive range
+                    dateRangeInput.setAttribute('data-start-date', selectedDates[0].toISOString().split('T')[0]);
+
+                    const inclusiveEndDate = new Date(selectedDates[1]);
+                    inclusiveEndDate.setDate(inclusiveEndDate.getDate() + 1); // Add one day to include the end date
+                    dateRangeInput.setAttribute('data-end-date', inclusiveEndDate.toISOString().split('T')[0]);
+
+                    clearDateFilterButton.style.display = 'inline'; // Show "X" button
+
+                } else if (selectedDates.length === 1) {
+                    // If only one date is selected, set both start and end dates to that date
+                    const formattedDate = selectedDates[0].toLocaleDateString(undefined, options);
+                    dateRangeInput.value = formattedDate;
+                    dateRangeInput.setAttribute('data-start-date', selectedDates[0].toISOString().split('T')[0]);
+                    dateRangeInput.setAttribute('data-end-date', selectedDates[0].toISOString().split('T')[0]);
+
+                    clearDateFilterButton.style.display = 'inline'; // Show "X" button
+                } else {
+                    // If no dates are selected, clear attributes and hide "X" button
+                    clearDateFilter();
+                }
+
+                fetchArticles(1); // Refetch articles with the new date range
+
+                // Close the menu after date selection
+                if (typeof window.closeMenu === 'function') {
+                    window.closeMenu();
+                }
             }
-    
-            fetchArticles(1); // Refetch articles with the new date range
-            closeMenu(); // Close the menu after date selection
-        }
-    });
+        });
+    }
 
     // Clear the date filter and hide the "X" button
     function clearDateFilter() {
-        dateRangeInput.value = '';
-        dateRangeInput.removeAttribute('data-start-date');
-        dateRangeInput.removeAttribute('data-end-date');
-        clearDateFilterButton.style.display = 'none'; // Hide "X" button
-        fetchArticles(1); // Fetch articles without date filter
-        closeMenu(); // Close the menu after date selection
+        if (dateRangeInput) {
+            dateRangeInput.value = '';
+            dateRangeInput.removeAttribute('data-start-date');
+            dateRangeInput.removeAttribute('data-end-date');
+            clearDateFilterButton.style.display = 'none'; // Hide "X" button
+            fetchArticles(1); // Fetch articles without date filter
+
+            // Close the menu after clearing date filter
+            if (typeof window.closeMenu === 'function') {
+                window.closeMenu();
+            }
+        }
     }
 
     // Add event listener for the "X" button to clear the date filter
-    clearDateFilterButton.addEventListener('click', clearDateFilter);
-
-    // Show date picker when clicking the calendar icon
-    // calendarIcon.addEventListener('click', () => {
-    //     dateRangeInput.style.display = "block";
-    //     dateRangeInput._flatpickr.open(); // Open date picker
-    // });
-
-    // Add this function at the beginning of main.js to retrieve query parameters
-    function getQueryParameter(param) {
-        const urlParams = new URLSearchParams(window.location.search);
-        return urlParams.get(param);
-    }
-
-    // Check for 'keyword' query parameter on load
-    const keywordFromUrl = getQueryParameter('keyword');
-    if (keywordFromUrl) {
-        keywordInput.value = keywordFromUrl;  // Set the search input with the keyword from URL
-        searchBarOpen = true;  // Open the search bar
-        keywordInput.classList.add('visible'); // Show the search bar
-        searchIcon.style.display = 'none';     // Hide the search icon
-        clearIcon.classList.add('visible');    // Show the clear icon
-        fetchArticles(1); // Trigger search with the keyword
+    if (clearDateFilterButton) {
+        clearDateFilterButton.addEventListener('click', clearDateFilter);
     }
 
     // Loading Screen Functions
     function showLoadingScreen() {
-        loadingScreen.style.display = 'flex';
+        if (loadingScreen) {
+            loadingScreen.style.display = 'flex';
+        }
     }
 
     function hideLoadingScreen() {
-        loadingScreen.classList.add('fade-out');
-        setTimeout(() => {
-            loadingScreen.style.display = 'none';
-            loadingScreen.classList.remove('fade-out');
-        }, 900);
+        if (loadingScreen) {
+            loadingScreen.classList.add('fade-out');
+            setTimeout(() => {
+                loadingScreen.style.display = 'none';
+                loadingScreen.classList.remove('fade-out');
+            }, 900);
+        }
     }
 
     // Fetch and display articles
-    function fetchArticles(page = 1) {
-        const keyword = keywordInput.value.trim();
-        const startDate = dateRangeInput.getAttribute('data-start-date') || '';
-        const endDate = dateRangeInput.getAttribute('data-end-date') || '';
+    window.fetchArticles = function fetchArticles(page = 1) {
+        const keyword = keywordInput ? keywordInput.value.trim() : '';
+        const startDate = dateRangeInput ? dateRangeInput.getAttribute('data-start-date') || '' : '';
+        const endDate = dateRangeInput ? dateRangeInput.getAttribute('data-end-date') || '' : '';
         const params = new URLSearchParams({
             topic: selectedTopic,
             source: selectedSource,
@@ -168,14 +189,16 @@ document.addEventListener('DOMContentLoaded', function() {
             end_date: endDate,
             page: page
         });
-    
+
         if (isInitialLoad) {
             showLoadingScreen();
         } else {
-            articlesContainer.classList.add('hide');
+            if (articlesContainer) {
+                articlesContainer.classList.add('hide');
+            }
             document.getElementById('pagination-wrapper').classList.add('pagination-hide');
         }
-    
+
         fetch(`/get_articles?${params.toString()}`)
             .then(response => response.json())
             .then(data => {
@@ -183,24 +206,36 @@ document.addEventListener('DOMContentLoaded', function() {
                     renderArticles(data.articles);
                     updatePagination(data.current_page, data.total_pages);
                     window.scrollTo(0, 0);
-    
-                    if (!searchBarOpen) {
+
+                    // Use global searchBarOpen
+                    if (stickyTitle && !window.searchBarOpen) {
                         stickyTitle.classList.remove('hide');
                     }
-    
+
                     if (isInitialLoad) {
                         hideLoadingScreen();
                         isInitialLoad = false;
                     } else {
-                        articlesContainer.classList.remove('hide');
+                        if (articlesContainer) {
+                            articlesContainer.classList.remove('hide');
+                        }
                         document.getElementById('pagination-wrapper').classList.remove('pagination-hide');
                     }
                 }, isInitialLoad ? 0 : 650);
+            })
+            .catch(error => {
+                console.error("Error fetching articles:", error);
+                if (isInitialLoad) {
+                    hideLoadingScreen();
+                    isInitialLoad = false;
+                }
             });
-    }
+    };
 
     // Render articles
     function renderArticles(articles) {
+        if (!articlesContainer) return;
+
         articlesContainer.innerHTML = '';
         if (articles.length === 0) {
             articlesContainer.innerHTML = '<p>No articles found.</p>';
@@ -288,7 +323,7 @@ document.addEventListener('DOMContentLoaded', function() {
         topicItems.forEach(topic => topic.classList.remove('selected-topic'));
         item.classList.add('selected-topic');
         localStorage.setItem('selectedTopic', selectedTopic);
-        if (window.innerWidth <= 768) {
+        if (window.innerWidth <= 768 && stickyTitle) {
             stickyTitle.classList.add('hide');
         }
     }
@@ -320,7 +355,11 @@ document.addEventListener('DOMContentLoaded', function() {
         item.addEventListener('click', function() {
             selectTopic(this);
             fetchArticles(1);
-            closeMenu();
+
+            // Close the menu after selecting a topic
+            if (typeof window.closeMenu === 'function') {
+                window.closeMenu();
+            }
         });
     });
 
@@ -328,125 +367,25 @@ document.addEventListener('DOMContentLoaded', function() {
         item.addEventListener('click', function() {
             selectSource(this);
             fetchArticles(1);
-            closeMenu();
+
+            // Close the menu after selecting a source
+            if (typeof window.closeMenu === 'function') {
+                window.closeMenu();
+            }
         });
     });
 
     // Keyword Search
-    keywordInput.addEventListener('input', () => fetchArticles(1));
+    if (keywordInput) {
+        keywordInput.addEventListener('input', () => fetchArticles(1));
 
-    // Modify this event listener to blur the input when Enter is pressed
-    keywordInput.addEventListener('keypress', function(event) {
-        if (event.key === 'Enter') {
-            event.preventDefault();
-            keywordInput.blur(); // This will close the keyboard on mobile devices
-        }
-    });
-
-    // Hamburger Menu
-    function toggleMenu(event) {
-        event.stopPropagation();
-        isMenuOpen = !isMenuOpen;
-        hamburgerMenu.classList.toggle('active', isMenuOpen);
-        sideMenu.classList.toggle('open', isMenuOpen);
-        contentWrapper.classList.toggle('menu-open', isMenuOpen);
-        stickyBar.classList.toggle('menu-open', isMenuOpen && stickyBar.classList.contains('scrolled'));
-        applySelectedStyles();
-    }
-
-    function closeMenu() {
-        isMenuOpen = false;
-        hamburgerMenu.classList.remove('active');
-        sideMenu.classList.remove('open');
-        contentWrapper.classList.remove('menu-open');
-        stickyBar.classList.remove('menu-open');
-    }
-
-    hamburgerMenu.addEventListener('click', toggleMenu);
-    document.addEventListener('click', function(event) {
-        if (isMenuOpen && !sideMenu.contains(event.target) && !hamburgerMenu.contains(event.target)) {
-            closeMenu();
-        }
-    });
-    sideMenu.addEventListener('click', event => event.stopPropagation());
-
-    // Sticky Bar Scroll Behavior
-    function toggleStickyBarBorder() {
-        const headerBottom = header.getBoundingClientRect().bottom;
-        const stickyBarBottom = stickyBar.getBoundingClientRect().bottom;
-        const currentScrollY = window.scrollY;
-        const isScrollingDown = currentScrollY > lastScrollY;
-        lastScrollY = currentScrollY;
-
-        if (isScrollingDown && stickyBarBottom >= headerBottom) {
-            stickyBar.classList.add('scrolled');
-            if (isMenuOpen) stickyBar.classList.add('menu-open');
-
-            // Hide sticky title if search bar is open
-            if (searchBarOpen) {
-                stickyTitle.classList.add('hide');
+        // Modify this event listener to blur the input when Enter is pressed
+        keywordInput.addEventListener('keypress', function(event) {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                keywordInput.blur(); // This will close the keyboard on mobile devices
             }
-        } else if (!isScrollingDown && stickyBarBottom <= headerBottom) {
-            stickyBar.classList.remove('scrolled', 'menu-open');
-
-            // Hide sticky title if search bar is open
-            if (searchBarOpen) {
-                stickyTitle.classList.add('hide');
-            }
-        }
-    }
-
-    window.addEventListener('scroll', toggleStickyBarBorder);
-    toggleStickyBarBorder();
-
-    // Search Icon Behavior
-    searchIcon.addEventListener('click', function() {
-        if (!searchBarOpen) {
-            keywordInput.classList.add('visible');
-            searchIcon.style.display = 'none';
-            clearIcon.classList.add('visible');
-            searchBarOpen = true;
-            keywordInput.focus();
-            stickyTitle.classList.add('hide');
-        }
-    });
-
-    clearIcon.addEventListener('click', function() {
-        keywordInput.value = '';
-        keywordInput.classList.remove('visible');
-        searchIcon.style.display = 'block';
-        clearIcon.classList.remove('visible');
-        searchBarOpen = false;
-        fetchArticles(1);
-
-        // Show sticky title if conditions are met
-        if (window.innerWidth > 590 || stickyBar.classList.contains('scrolled')) {
-            stickyTitle.classList.remove('hide');
-        }
-    });
-
-    // Home Buttons Reset Filters
-    homeButtons.forEach(button => button.addEventListener('click', resetFilters));
-
-    function resetFilters() {
-        selectedTopic = 'all';
-        selectedSource = 'all';
-        keywordInput.value = '';
-        dateRangeInput.value = ''; // Clear the date range input
-        dateRangeInput.removeAttribute('data-start-date');
-        dateRangeInput.removeAttribute('data-end-date');
-        localStorage.removeItem('selectedTopic');
-        localStorage.removeItem('selectedSource');
-        applySelectedStyles();
-        currentPage = 1;
-        fetchArticles(currentPage);
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-    
-        // Reset the keyword search input to its original state
-        keywordInput.classList.remove('visible');
-        searchIcon.style.display = 'block';
-        clearIcon.classList.remove('visible');
-        searchBarOpen = false;
+        });
     }
 
     // Initial Setup

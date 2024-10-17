@@ -700,6 +700,16 @@ main {
     .sticky-bar.scrolled.menu-open .sticky-title {
         transform: translateX(calc(75% + 125px)) translateY(0);
     }
+
+    .filters {
+        flex-direction: column; /* Stack the filters vertically */
+        gap: 20px; /* Increase the gap between filters */
+    }
+
+    #source, #topic, #date-range {
+        width: 95% !important; /* Make each filter take the full width */
+        flex: unset; /* Remove flex property */
+    }
 }
 
 @media (max-width: 590px) {
@@ -736,26 +746,64 @@ main {
 
 .filters {
     display: flex;
-    justify-content: center;
-    gap: 10px; /* Space between items */
+    gap: 10px;
     margin: 10px 0;
-    align-items: center; /* Center items vertically */
+    align-items: center;
+    width: 100%;
+}
+
+#source, #topic, #date-range {
+    flex: 1; /* Each filter takes equal space */
+    width: 100%;
+    padding: 10px;
+    padding-right: 30px;
+    font-size: 1rem;
+    border: 0.1px solid #333;
+    background-color: #333;
+    color: white;
+    font-family: 'Heebo', sans-serif;
+    box-sizing: border-box;
+
+}
+
+#source, #topic {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-image: url("data:image/svg+xml;utf8,<svg fill='white' height='24' viewBox='0 0 24 24' width='24' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/><path d='M0 0h24v24H0z' fill='none'/></svg>");
+    background-repeat: no-repeat;
+    background-position: calc(100% - 10px) center;
 }
 
 /* Specific styling for main in wordcloud.html */
 #wordcloud-main {
     margin-top: 10px;
     padding: 0 5px;
-    width: 100%; /* Ensures full width for wordcloud page */
-    max-width: none !important;
+    width: 95%; /* Ensures full width for wordcloud page */
+    max-width: 95vw; /* Ensures no overflow horizontally */
 }
 
 #wordcloud {
     width: 100%; 
-    height: 100vh;
+    height: 80vh;
     position: relative;
     transition: opacity 0.5s ease;
     z-index: 999;
+    padding: 15px;
+    display: flex;
+    justify-content: center; /* Horizontally center the content */
+    overflow: hidden; /* Prevent overflowing horizontally */
+    box-sizing: border-box;
+}
+
+#wordcloud svg {
+    display: block;
+    margin: 0 auto;
+    max-width: 100%; /* Ensure the SVG scales responsively */
+    max-height: 100%;
+    width: auto; 
+    height: auto;
+    overflow: visible; /* Ensure that the g element is not clipped */
 }
 
 /* Ensure sticky title is always visible on wordcloud page */

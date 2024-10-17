@@ -42,6 +42,7 @@ def load_data():
 def load_wordcloud_data():
     csv_obj = s3_client.get_object(Bucket=S3_BUCKET, Key=WORDCLOUD_CSV_KEY)
     wordcloud_data = pd.read_csv(csv_obj['Body'])
+    wordcloud_data['publish_date'] = pd.to_datetime(wordcloud_data['publish_date'])  # Ensure date column is datetime
     return wordcloud_data
 
 # Custom filter for date formatting
@@ -76,19 +77,29 @@ def wordcloud():
     return render_template('wordcloud.html')
 
 # Function to generate word frequencies
-def generate_word_frequencies(source=None, topic=None):
-    # Load the word cloud data
+def generate_word_frequencies(source=None, topic=None, start_date=None, end_date=None):
     wordcloud_data = load_wordcloud_data()
-    
-    # Filter by source and topic if provided
-    filtered_data = wordcloud_data.copy()
-    if source:
-        filtered_data = filtered_data[filtered_data["source"] == source]
-    if topic:
-        filtered_data = filtered_data[(filtered_data["topic1"] == topic) | (filtered_data["topic2"] == topic)]
 
+    # Filter by source and topic if provided
+    if source:
+        wordcloud_data = wordcloud_data[wordcloud_data["source"] == source]
+    if topic:
+        wordcloud_data = wordcloud_data[(wordcloud_data["topic1"] == topic) | (wordcloud_data["topic2"] == topic)]
+    
+    # Filter by date range if provided
+    if start_date and end_date:
+        start_date = datetime.strptime(start_date, "%Y-%m-%d")
+        end_date = datetime.strptime(end_date, "%Y-%m-%d")
+        
+        # If start_date and end_date are the same, treat it as a single date
+        if start_date == end_date:
+            wordcloud_data = wordcloud_data[wordcloud_data["publish_date"].dt.date == start_date.date()]
+        else:
+            # Include both start and end dates in the range
+            wordcloud_data = wordcloud_data[(wordcloud_data["publish_date"] >= start_date) & (wordcloud_data["publish_date"] <= end_date)]
+    
     # Combine all cleaned content into a single string
-    text = " ".join(filtered_data["cleaned_content"].dropna().astype(str)).lower()
+    text = " ".join(wordcloud_data["cleaned_content"].dropna().astype(str)).lower()
     
     # Use regex to split by words and count frequencies
     words = re.findall(r'\b\w+\b', text)
@@ -98,18 +109,17 @@ def generate_word_frequencies(source=None, topic=None):
     TOP_N_WORDS = 250
     most_common_words = word_counts.most_common(TOP_N_WORDS)
 
-    # Convert to a list of dictionaries for JSON output
-    word_frequencies = [{"text": word, "size": count} for word, count in most_common_words if count > 1]
-
-    return word_frequencies
+    return [{"text": word, "size": count} for word, count in most_common_words if count > 1]
 
 # Endpoint to provide word frequency data with filters
 @app.route('/data')
 def data_endpoint():
     source = request.args.get('source')
     topic = request.args.get('topic')
+    start_date = request.args.get('start_date')
+    end_date = request.args.get('end_date')
     
-    word_frequencies = generate_word_frequencies(source, topic)
+    word_frequencies = generate_word_frequencies(source, topic, start_date, end_date)
     return jsonify(word_frequencies)
 
 # Endpoint for unique values for dropdowns
