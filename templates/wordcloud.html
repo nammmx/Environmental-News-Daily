@@ -7,8 +7,8 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Gravitas+One&family=Rozha+One&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Anton&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-    <!-- Include D3 and d3-cloud libraries -->
 </head>
 <body id="wordcloud-page">
 
@@ -26,7 +26,7 @@
             <i class="fa-solid fa-x hidden" id="clear-icon"></i>
         </div>
         <div id="side-menu" class="side-menu">
-            <h1><a href="{{ url_for('index') }}">News Articles</a></h1>
+            <h1><a href="{{ url_for('index') }}">Articles <i class="fa-solid fa-up-right-from-square"></i></a></h1>
         </div>
     </div>
 
@@ -40,17 +40,17 @@
                 <select id="topic">
                     <option value="">All Topics</option>
                 </select>
-                <!-- Date Range Input -->
-                <input type="text" id="date-range" placeholder="Select Date Range" readonly>
-                <button id="clear-date-filter" class="clear-date-button" style="display: none;">&times;</button>
+            <!-- Date Range Input with Clear Button inside -->
+                <div class="date-range-wrapper">
+                    <input type="text" id="date-range" placeholder="Select Date Range" readonly>
+                    <button id="clear-date-filter" class="clear-date-button" style="display: none;">&times;</button>
+                </div>
             </div>
 
             <div id="selected-word"></div>
             
             <!-- Word Cloud Container -->
             <div id="wordcloud"></div>
-
-            <button id="apply-filters" style="margin-top: 20px;">Apply Filters and View Articles</button>
         </main>
     </div>
 
